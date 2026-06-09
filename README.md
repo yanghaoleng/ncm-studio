@@ -4,6 +4,13 @@ NCM Studio 是一个浏览器优先的网易云音乐歌单整理和本地 `.ncm
 
 请勿将本项目用于侵犯版权、规避付费、批量搬运、传播未授权音乐或其他违法用途。
 
+## 在线示例
+
+- 在线站点：https://ncm.mikeywa.icu
+- GitHub 仓库：https://github.com/yanghaoleng/ncm-studio
+
+![NCM Studio 首页截图](docs/assets/homepage.png)
+
 ## 适合的使用场景
 
 - 你已经有一批本地 `.ncm` 文件，希望在浏览器里转成可播放的音频文件。
@@ -38,18 +45,18 @@ NCM Studio 是一个浏览器优先的网易云音乐歌单整理和本地 `.ncm
 
 ```text
 【歌曲信息】
-LAST SUMMER WHISPER - Tanaka Yuri
-喜欢 - 张悬
+示例歌曲 A - 示例歌手 A
+示例歌曲 B - 示例歌手 B
 
 【歌曲详情页】
-LAST SUMMER WHISPER - Tanaka Yuri
-https://music.163.com/#/song?id=22818003
-喜欢 - 张悬
-https://music.163.com/#/song?id=326719
+示例歌曲 A - 示例歌手 A
+https://music.163.com/#/song?id=00000000
+示例歌曲 B - 示例歌手 B
+https://music.163.com/#/song?id=00000001
 
 【外链下载链接】
-https://music.163.com/song/media/outer/url?id=22818003.mp3
-https://music.163.com/song/media/outer/url?id=326719.mp3
+https://music.163.com/song/media/outer/url?id=00000000.mp3
+https://music.163.com/song/media/outer/url?id=00000001.mp3
 ```
 
 说明：`song/media/outer/url` 是网易云自己的媒体外链入口，不是本项目破解出的真实 CDN 文件地址，也不是 `.ncm` 加密文件地址。打开时能否播放或下载，取决于网易云的版权、地区、账号状态和你的实际网络环境。

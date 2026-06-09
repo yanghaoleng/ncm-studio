@@ -21,7 +21,7 @@ NCM Studio 是一个个人用途的音乐文件整理工具，适合把自己已
 复制清单中的外链格式类似：
 
 ```text
-https://music.163.com/song/media/outer/url?id=22818003.mp3
+https://music.163.com/song/media/outer/url?id=00000000.mp3
 ```
 
 这是网易云自己的媒体外链入口，并不是本项目破解出的最终 CDN 文件地址。打开后是否能播放或下载，取决于网易云平台、版权状态、账号状态、地区和实际网络环境。
