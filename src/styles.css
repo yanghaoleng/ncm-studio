@@ -846,38 +846,33 @@ textarea:focus-visible {
 
 .siteFooter {
   position: fixed;
-  right: max(14px, env(safe-area-inset-right));
+  left: 50%;
   bottom: max(14px, env(safe-area-inset-bottom));
   z-index: 12;
   display: flex;
+  transform: translateX(-50%);
 }
 
 .githubFooterLink {
-  min-height: 38px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid var(--faint);
   color: var(--muted);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
   font-size: 13px;
   font-weight: 750;
+  line-height: 1;
   text-decoration: none;
-  transition: transform 180ms ease, color 180ms ease, border-color 180ms ease;
+  transition: transform 180ms ease, color 180ms ease;
 }
 
 .githubFooterLink:hover {
   transform: translateY(-1px);
   color: var(--text);
-  border-color: color-mix(in srgb, var(--primary), transparent 58%);
 }
 
 .githubFooterLink svg {
-  align-self: flex-start;
-  margin-top: 8px;
-  color: var(--primary);
+  flex: 0 0 auto;
+  color: currentColor;
 }
 
 .emptyState {
@@ -1198,7 +1193,6 @@ textarea:focus-visible {
   }
 
   .siteFooter.hasTracks {
-    right: 14px;
     bottom: 86px;
   }
 
