@@ -11,6 +11,7 @@ import {
   FileMusic,
   FolderInput,
   Hourglass,
+  Languages,
   Moon,
   Music2,
   RefreshCw,
@@ -44,8 +45,182 @@ Automatic (Remastered 2014) - Utada`
 
 const CONFIRM_MODAL_EXIT_MS = 220
 
-function playlistDetailText(item) {
-  return [item.artist, item.album].filter(Boolean).join(' · ') || '网易云音乐搜索'
+const LANGUAGE_OPTIONS = [
+  { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
+  { id: 'en', short: 'EN', label: 'English', htmlLang: 'en' },
+  { id: 'ja', short: '日', label: '日本語', htmlLang: 'ja' },
+]
+
+const I18N = {
+  zh: {
+    appTitle: 'NCM Studio',
+    neteaseSearchFallback: '网易云音乐搜索',
+    parseBusy: 'AI增强中',
+    parseEnhance: 'AI增强解析',
+    parseDone: '已完成增强',
+    parseDefault: '解析',
+    aiEnhanceError: 'AI 增强解析失败',
+    downloadUnavailable: '暂无公开直链',
+    downloadOfficial: '官方外链',
+    downloadPreview: '试听/临时',
+    downloadTemp: '临时',
+    copyPreparing: '整理中',
+    copyDone: '已复制',
+    copyButtonDefault: '复制',
+    copySongInfo: '【歌曲信息】',
+    copySongPages: '【歌曲详情页】',
+    copyDownloadLinks: '【外链下载链接】',
+    convertError: '转换失败',
+    playlistPanelTitle: '粘贴歌单',
+    playlistPanelSubtitle: '快速从网易云索引歌曲',
+    playlistPlaceholder: '一行一首',
+    playlistStatsLabel: '歌单统计',
+    tracksUnit: '曲目',
+    artistsUnit: '歌手',
+    openAll: '全部打开',
+    openSearchAria: (query) => `打开网易云搜索：${query}`,
+    processingTitle: 'NCM 文件处理',
+    chooseDropTitle: '选择或拖入 NCM 文件',
+    chooseDropSubtitle: '文件只会在本地处理',
+    dropOverlayTitle: '松手继续导入',
+    dropOverlaySubtitle: '新文件会自动加入处理队列',
+    queueSummary: ({ total, matched, ready, converting }) =>
+      `${total} 个文件 · ${matched} 个歌单匹配 · ${ready} 个完成 · ${converting} 个转换中`,
+    chooseMore: '继续选择',
+    convertAll: '全部转换',
+    downloadZip: '打包下载',
+    zipping: '打包中',
+    readyDownloadSuffix: '个 MP3 可下载',
+    zipShort: 'ZIP',
+    clearFinished: '清空完成',
+    modalTitle: '确定要打开这些页面吗？',
+    modalBody: (total) => `将打开 ${total} 个网易云搜索页面。`,
+    cancel: '取消',
+    modalConfirm: (total) => `打开 ${total} 个页面`,
+    matchedPlaylist: (track) =>
+      `匹配歌单：${track.playlistTitle}${track.playlistArtist ? ` - ${track.playlistArtist}` : ''}`,
+    metadataWaiting: '等待解析元数据',
+    previewLabel: '试听预览',
+    previewEmptyTitle: '选择一首已完成的歌曲',
+    previewEmptySubtitle: '完成转换后可在线播放',
+    audioLabel: '歌曲试听播放器，按空格播放或暂停',
+    themeToggleLabel: (theme) => (theme === 'light' ? '切换到深色模式' : '切换到浅色模式'),
+    languageToggleLabel: (current, next) => `当前语言：${current}。切换到${next}`,
+  },
+  en: {
+    appTitle: 'NCM Studio',
+    neteaseSearchFallback: 'NetEase Cloud Music search',
+    parseBusy: 'Enhancing',
+    parseEnhance: 'AI enhance',
+    parseDone: 'Enhanced',
+    parseDefault: 'Parse',
+    aiEnhanceError: 'AI enhancement failed',
+    downloadUnavailable: 'No public direct link',
+    downloadOfficial: 'Official external link',
+    downloadPreview: 'Preview/temporary',
+    downloadTemp: 'Temporary',
+    copyPreparing: 'Preparing',
+    copyDone: 'Copied',
+    copyButtonDefault: 'Copy',
+    copySongInfo: '[Track info]',
+    copySongPages: '[Song pages]',
+    copyDownloadLinks: '[External download links]',
+    convertError: 'Conversion failed',
+    playlistPanelTitle: 'Paste playlist',
+    playlistPanelSubtitle: 'Find tracks on NetEase quickly',
+    playlistPlaceholder: 'One song per line',
+    playlistStatsLabel: 'Playlist stats',
+    tracksUnit: 'tracks',
+    artistsUnit: 'artists',
+    openAll: 'Open all',
+    openSearchAria: (query) => `Open NetEase search: ${query}`,
+    processingTitle: 'NCM file processing',
+    chooseDropTitle: 'Choose or drop NCM files',
+    chooseDropSubtitle: 'Files are processed locally only',
+    dropOverlayTitle: 'Release to import',
+    dropOverlaySubtitle: 'New files will join the queue',
+    queueSummary: ({ total, matched, ready, converting }) =>
+      `${total} files · ${matched} playlist matches · ${ready} done · ${converting} converting`,
+    chooseMore: 'Choose more',
+    convertAll: 'Convert all',
+    downloadZip: 'Download ZIP',
+    zipping: 'Zipping',
+    readyDownloadSuffix: 'MP3 ready',
+    zipShort: 'ZIP',
+    clearFinished: 'Clear done',
+    modalTitle: 'Open these pages?',
+    modalBody: (total) => `${total} NetEase search pages will be opened.`,
+    cancel: 'Cancel',
+    modalConfirm: (total) => `Open ${total} pages`,
+    matchedPlaylist: (track) =>
+      `Playlist match: ${track.playlistTitle}${track.playlistArtist ? ` - ${track.playlistArtist}` : ''}`,
+    metadataWaiting: 'Waiting for metadata',
+    previewLabel: 'Preview',
+    previewEmptyTitle: 'Select a converted song',
+    previewEmptySubtitle: 'Converted tracks can play here',
+    audioLabel: 'Track preview player, press Space to play or pause',
+    themeToggleLabel: (theme) => (theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'),
+    languageToggleLabel: (current, next) => `Current language: ${current}. Switch to ${next}`,
+  },
+  ja: {
+    appTitle: 'NCM Studio',
+    neteaseSearchFallback: 'NetEase Cloud Music 検索',
+    parseBusy: 'AI強化中',
+    parseEnhance: 'AI強化解析',
+    parseDone: '強化済み',
+    parseDefault: '解析',
+    aiEnhanceError: 'AI 強化解析に失敗しました',
+    downloadUnavailable: '公開直リンクなし',
+    downloadOfficial: '公式外部リンク',
+    downloadPreview: '試聴/一時',
+    downloadTemp: '一時リンク',
+    copyPreparing: '整理中',
+    copyDone: 'コピー済み',
+    copyButtonDefault: 'コピー',
+    copySongInfo: '【楽曲情報】',
+    copySongPages: '【楽曲ページ】',
+    copyDownloadLinks: '【外部ダウンロードリンク】',
+    convertError: '変換に失敗しました',
+    playlistPanelTitle: 'プレイリスト貼り付け',
+    playlistPanelSubtitle: 'NetEase で楽曲をすばやく検索',
+    playlistPlaceholder: '1行に1曲',
+    playlistStatsLabel: 'プレイリスト統計',
+    tracksUnit: '曲',
+    artistsUnit: 'アーティスト',
+    openAll: 'すべて開く',
+    openSearchAria: (query) => `NetEase 検索を開く：${query}`,
+    processingTitle: 'NCM ファイル処理',
+    chooseDropTitle: 'NCM ファイルを選択またはドロップ',
+    chooseDropSubtitle: 'ファイルはローカルでのみ処理されます',
+    dropOverlayTitle: '離してインポート',
+    dropOverlaySubtitle: '新しいファイルはキューに追加されます',
+    queueSummary: ({ total, matched, ready, converting }) =>
+      `${total} ファイル · ${matched} 件一致 · ${ready} 件完了 · ${converting} 件変換中`,
+    chooseMore: '追加選択',
+    convertAll: 'すべて変換',
+    downloadZip: 'ZIP ダウンロード',
+    zipping: '圧縮中',
+    readyDownloadSuffix: '個の MP3 がダウンロード可能',
+    zipShort: 'ZIP',
+    clearFinished: '完了をクリア',
+    modalTitle: 'これらのページを開きますか？',
+    modalBody: (total) => `${total} 個の NetEase 検索ページを開きます。`,
+    cancel: 'キャンセル',
+    modalConfirm: (total) => `${total} ページを開く`,
+    matchedPlaylist: (track) =>
+      `プレイリスト一致：${track.playlistTitle}${track.playlistArtist ? ` - ${track.playlistArtist}` : ''}`,
+    metadataWaiting: 'メタデータ解析待ち',
+    previewLabel: '試聴プレビュー',
+    previewEmptyTitle: '変換済みの曲を選択',
+    previewEmptySubtitle: '変換後ここで再生できます',
+    audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
+    themeToggleLabel: (theme) => (theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'),
+    languageToggleLabel: (current, next) => `現在の言語：${current}。${next}に切り替え`,
+  },
+}
+
+function playlistDetailText(item, messages) {
+  return [item.artist, item.album].filter(Boolean).join(' · ') || messages.neteaseSearchFallback
 }
 
 function playlistCopyInfo(item) {
@@ -78,6 +253,7 @@ function useGsapIntro(deps = []) {
 
 function App() {
   const [theme, setTheme] = useState('dark')
+  const [language, setLanguage] = useState('zh')
   const [playlistText, setPlaylistText] = useState(seedPlaylist)
   const [playlistItems, setPlaylistItems] = useState([])
   const [tracks, setTracks] = useState([])
@@ -97,7 +273,13 @@ function App() {
   const confirmCloseTimerRef = useRef(null)
   const confirmStateRef = useRef({ open: false, closing: false })
   const tracksRef = useRef([])
+  const audioRef = useRef(null)
   const rootRef = useGsapIntro([])
+  const messages = I18N[language]
+  const currentLanguageOption =
+    LANGUAGE_OPTIONS.find((option) => option.id === language) || LANGUAGE_OPTIONS[0]
+  const nextLanguageOption =
+    LANGUAGE_OPTIONS[(LANGUAGE_OPTIONS.indexOf(currentLanguageOption) + 1) % LANGUAGE_OPTIONS.length]
 
   const matchState = useMemo(
     () => matchPlaylistToTracks(playlistItems, tracks),
@@ -115,12 +297,12 @@ function App() {
   const aiEnhanceComplete = hasParsedCurrentPlaylist && aiEnhancedText === currentPlaylistTextKey
   const ParseButtonIcon = isAiEnhancing ? Hourglass : canAiEnhancePlaylist ? Sparkles : Wand2
   const parseButtonLabel = isAiEnhancing
-    ? 'AI增强中'
+    ? messages.parseBusy
     : canAiEnhancePlaylist
-      ? 'AI增强解析'
+      ? messages.parseEnhance
       : aiEnhanceComplete
-        ? '已完成增强'
-        : '解析'
+        ? messages.parseDone
+        : messages.parseDefault
   const playlistStats = useMemo(() => {
     const artists = new Set()
 
@@ -148,8 +330,46 @@ function App() {
   }, [theme])
 
   useEffect(() => {
+    document.documentElement.lang = currentLanguageOption.htmlLang
+  }, [currentLanguageOption.htmlLang])
+
+  useEffect(() => {
     tracksRef.current = tracks
   }, [tracks])
+
+  useEffect(() => {
+    function handlePlayerShortcut(event) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+      if (event.code !== 'Space' && event.key !== ' ') return
+      if (confirmStateRef.current.open) return
+
+      const target = event.target
+      if (target instanceof HTMLElement) {
+        const interactiveTarget = target.closest(
+          'input, textarea, select, button, a, audio, [contenteditable="true"]',
+        )
+        if (target.isContentEditable || interactiveTarget) return
+      }
+
+      const audio = audioRef.current
+      const hasAudioSource = audio?.currentSrc || audio?.getAttribute('src')
+      if (!audio || !hasAudioSource) return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (audio.paused) {
+        const playPromise = audio.play()
+        if (playPromise) playPromise.catch(() => {})
+        return
+      }
+
+      audio.pause()
+    }
+
+    window.addEventListener('keydown', handlePlayerShortcut, true)
+    return () => window.removeEventListener('keydown', handlePlayerShortcut, true)
+  }, [])
 
   useEffect(() => {
     confirmStateRef.current = {
@@ -324,7 +544,7 @@ function App() {
       setOpenedSearchIds(new Set())
       closeOpenAllConfirm()
     } catch (error) {
-      setAiParseError(error.message || 'AI 增强解析失败')
+      setAiParseError(error.message || messages.aiEnhanceError)
     } finally {
       setIsAiEnhancing(false)
     }
@@ -368,7 +588,7 @@ function App() {
       item,
       songLink: neteaseSearchUrl(item),
       downloadLink: '',
-      downloadNote: '暂无公开直链',
+      downloadNote: messages.downloadUnavailable,
     }))
 
     try {
@@ -390,11 +610,11 @@ function App() {
         songLink: results[index]?.songUrl || row.songLink,
         downloadLink: results[index]?.downloadUrl || '',
         downloadNote: results[index]?.downloadIsOuterFallback
-          ? '官方外链'
+          ? messages.downloadOfficial
           : results[index]?.downloadIsPreview
-            ? '试听/临时'
+            ? messages.downloadPreview
             : results[index]?.downloadUrl
-              ? '临时'
+              ? messages.downloadTemp
               : row.downloadNote,
       }))
     } catch {
@@ -404,7 +624,7 @@ function App() {
 
   async function copyImportPlan() {
     const items = searchRows.length ? searchRows : parsePlaylistText(playlistText)
-    setCopyState('整理中')
+    setCopyState('preparing')
 
     const rows = await resolveFirstSongLinks(items)
     const songInfoBlock = rows
@@ -417,17 +637,17 @@ function App() {
       .map(({ downloadLink, downloadNote }) => downloadLink || downloadNote)
       .join('\n')
     const text = [
-      '【歌曲信息】',
+      messages.copySongInfo,
       songInfoBlock,
       '',
-      '【歌曲详情页】',
+      messages.copySongPages,
       songPageBlock,
       '',
-      '【外链下载链接】',
+      messages.copyDownloadLinks,
       downloadLinkBlock,
     ].join('\n')
     await navigator.clipboard.writeText(text)
-    setCopyState('已复制')
+    setCopyState('done')
     setTimeout(() => setCopyState(''), 1600)
   }
 
@@ -482,7 +702,7 @@ function App() {
       setTracks((current) =>
         current.map((item) =>
           item.id === track.id
-            ? { ...item, status: 'error', progress: 0, error: error.message || '转换失败' }
+            ? { ...item, status: 'error', progress: 0, error: error.message || messages.convertError }
             : item,
         ),
       )
@@ -572,12 +792,28 @@ function App() {
               <Music2 size={22} />
             </div>
             <div>
-              <h1>NCM Studio</h1>
+              <h1>{messages.appTitle}</h1>
             </div>
           </div>
 
         <div className="topbarActions">
-          <button className="iconButton" type="button" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+          <button
+            className="iconButton languageButton"
+            type="button"
+            onClick={() => setLanguage(nextLanguageOption.id)}
+            aria-label={messages.languageToggleLabel(currentLanguageOption.label, nextLanguageOption.label)}
+            title={messages.languageToggleLabel(currentLanguageOption.label, nextLanguageOption.label)}
+          >
+            <Languages size={16} />
+            <span>{currentLanguageOption.short}</span>
+          </button>
+          <button
+            className="iconButton"
+            type="button"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            aria-label={messages.themeToggleLabel(theme)}
+            title={messages.themeToggleLabel(theme)}
+          >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
         </div>
@@ -587,15 +823,15 @@ function App() {
         <section className="leftRail">
           <Panel
             icon={FolderInput}
-            title="粘贴歌单"
-            subtitle="快速从网易云索引歌曲"
+            title={messages.playlistPanelTitle}
+            subtitle={messages.playlistPanelSubtitle}
             accent="blue"
           >
             <textarea
               className="playlistInput"
               value={playlistText}
               onChange={(event) => handlePlaylistTextChange(event.target.value)}
-              placeholder="一行一首"
+              placeholder={messages.playlistPlaceholder}
             />
             <div className="panelActions playlistActions">
               <button
@@ -614,14 +850,18 @@ function App() {
             {!!searchRows.length && (
               <div className="searchResults" onKeyDown={handleSearchResultsKeyDown}>
                 <div className="searchResultFooter">
-                  <div className="searchResultStats" aria-label="歌单统计">
-                    <span><strong>{playlistStats.total}</strong> 曲目</span>
-                    <span><strong>{playlistStats.artists}</strong> 歌手</span>
+                  <div className="searchResultStats" aria-label={messages.playlistStatsLabel}>
+                    <span><strong>{playlistStats.total}</strong> {messages.tracksUnit}</span>
+                    <span><strong>{playlistStats.artists}</strong> {messages.artistsUnit}</span>
                   </div>
                   <div className="searchResultFooterActions">
                     <button className="secondaryButton compactCopyButton" type="button" onClick={(event) => { animatePress(event); copyImportPlan() }}>
                       <ClipboardList size={17} />
-                      {copyState || '复制'}
+                      {copyState === 'preparing'
+                        ? messages.copyPreparing
+                        : copyState === 'done'
+                          ? messages.copyDone
+                          : messages.copyButtonDefault}
                     </button>
                     <button
                       className="secondaryButton openAllButton"
@@ -629,7 +869,7 @@ function App() {
                       onClick={(event) => { animatePress(event); openOpenAllConfirm() }}
                     >
                       <ExternalLink size={16} />
-                      全部打开
+                      {messages.openAll}
                     </button>
                   </div>
                 </div>
@@ -642,13 +882,13 @@ function App() {
                       className={`searchResultRow ${hasOpened ? 'searched' : ''}`}
                       key={item.id}
                       type="button"
-                      aria-label={`打开网易云搜索：${playlistSearchQuery(item)}`}
+                      aria-label={messages.openSearchAria(playlistSearchQuery(item))}
                       onClick={(event) => { animatePress(event); openNeteaseSearch(item) }}
                     >
                       <RowIcon size={16} />
                       <span>
                         <strong>{item.title}</strong>
-                        <em>{playlistDetailText(item)}</em>
+                        <em>{playlistDetailText(item, messages)}</em>
                       </span>
                       <ExternalLink size={14} />
                     </button>
@@ -693,7 +933,7 @@ function App() {
             <div className="uploadEmpty">
               <div className="queueHeader uploadHeader">
                 <div>
-                  <h2>NCM 文件处理</h2>
+                  <h2>{messages.processingTitle}</h2>
                 </div>
               </div>
 
@@ -703,8 +943,8 @@ function App() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <UploadCloud size={34} />
-                <strong>选择或拖入 NCM 文件</strong>
-                <span>文件只会在本地处理</span>
+                <strong>{messages.chooseDropTitle}</strong>
+                <span>{messages.chooseDropSubtitle}</span>
               </button>
             </div>
           ) : (
@@ -712,30 +952,35 @@ function App() {
               {isDragging && (
                 <div className="dropOverlay">
                   <UploadCloud size={34} />
-                  <strong>松手继续导入</strong>
-                  <span>新文件会自动加入处理队列</span>
+                  <strong>{messages.dropOverlayTitle}</strong>
+                  <span>{messages.dropOverlaySubtitle}</span>
                 </div>
               )}
 
               <div className="queueHeader">
                 <div>
-                  <h2>NCM 文件处理</h2>
+                  <h2>{messages.processingTitle}</h2>
                   <p>
-                    {`${tracks.length} 个文件 · ${matchedPlaylistCount} 个歌单匹配 · ${readyCount} 个完成 · ${convertingCount} 个转换中`}
+                    {messages.queueSummary({
+                      total: tracks.length,
+                      matched: matchedPlaylistCount,
+                      ready: readyCount,
+                      converting: convertingCount,
+                    })}
                   </p>
                 </div>
                 <div className="queueControls">
                   <button className="secondaryButton" type="button" onClick={() => fileInputRef.current?.click()}>
                     <UploadCloud size={17} />
-                    继续选择
+                    {messages.chooseMore}
                   </button>
                   <button className="secondaryButton" type="button" onClick={convertAll} disabled={!tracks.some((track) => ['queued', 'error'].includes(track.status))}>
                     <RefreshCw size={17} />
-                    全部转换
+                    {messages.convertAll}
                   </button>
                   <button className="primaryButton" type="button" onClick={downloadZip} disabled={!readyCount || isZipping}>
                     <Archive size={17} />
-                    {isZipping ? '打包中' : '打包下载'}
+                    {isZipping ? messages.zipping : messages.downloadZip}
                   </button>
                 </div>
               </div>
@@ -751,12 +996,15 @@ function App() {
                     onConvert={() => convertTrack(track)}
                     onDownload={() => downloadTrack(track)}
                     onRemove={() => removeTrack(track.id)}
+                    messages={messages}
                   />
                 ))}
               </div>
 
               <PreviewPane
                 track={selectedTrack}
+                messages={messages}
+                audioRef={audioRef}
               />
             </>
           )}
@@ -767,19 +1015,19 @@ function App() {
         <div className="bottomBar" data-enter>
           <div>
             <strong>{readyCount}</strong>
-            <span>个 MP3 可下载</span>
+            <span>{messages.readyDownloadSuffix}</span>
           </div>
           <button type="button" onClick={convertAll} disabled={!tracks.some((track) => ['queued', 'error'].includes(track.status))}>
             <Sparkles size={17} />
-            全部转换
+            {messages.convertAll}
           </button>
           <button type="button" onClick={downloadZip} disabled={!readyCount || isZipping}>
             <Archive size={17} />
-            ZIP
+            {messages.zipShort}
           </button>
           <button type="button" onClick={clearFinished} disabled={!readyCount}>
             <Trash2 size={17} />
-            清空完成
+            {messages.clearFinished}
           </button>
         </div>
       )}
@@ -798,15 +1046,15 @@ function App() {
             onKeyDown={handleConfirmDialogKeyDown}
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 id="openAllSearchTitle">确定要打开这些页面吗？</h2>
-            <p>{`将打开 ${playlistStats.total} 个网易云搜索页面。`}</p>
+            <h2 id="openAllSearchTitle">{messages.modalTitle}</h2>
+            <p>{messages.modalBody(playlistStats.total)}</p>
             <div className="confirmActions">
               <button className="secondaryButton" type="button" onClick={closeOpenAllConfirm}>
-                取消
+                {messages.cancel}
               </button>
               <button ref={confirmPrimaryButtonRef} className="primaryButton" type="button" onClick={openAllSearchResults}>
                 <ExternalLink size={17} />
-                {`打开 ${playlistStats.total} 个页面`}
+                {messages.modalConfirm(playlistStats.total)}
               </button>
             </div>
           </div>
@@ -833,7 +1081,7 @@ function Panel({ icon: Icon, title, subtitle, accent, children }) {
   )
 }
 
-function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onRemove }) {
+function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onRemove, messages }) {
   const canDownload = track.status === 'ready' && track.audioBlob
 
   return (
@@ -854,8 +1102,8 @@ function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onR
         <strong>{track.title}</strong>
         <span>
           {track.playlistItemId
-            ? `匹配歌单：${track.playlistTitle}${track.playlistArtist ? ` - ${track.playlistArtist}` : ''}`
-            : track.artist || track.album || track.file?.name || '等待解析元数据'}
+            ? messages.matchedPlaylist(track)
+            : track.artist || track.album || track.file?.name || messages.metadataWaiting}
         </span>
         {track.status === 'error' && <em>{track.error}</em>}
       </div>
@@ -886,19 +1134,23 @@ function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onR
   )
 }
 
-function PreviewPane({ track }) {
+function PreviewPane({ track, messages, audioRef }) {
   return (
     <aside className="previewPane">
       <div className="cover">
         {track?.coverUrl ? <img src={track.coverUrl} alt="" /> : <Music2 size={42} />}
       </div>
       <div className="previewMeta">
-        <span>试听预览</span>
-        <strong>{track?.title || '选择一首已完成的歌曲'}</strong>
-        <p>{track?.artist || track?.album || '完成转换后可在线播放'}</p>
+        <span>{messages.previewLabel}</span>
+        <strong>{track?.title || messages.previewEmptyTitle}</strong>
+        <p>{track?.artist || track?.album || messages.previewEmptySubtitle}</p>
       </div>
       <div className="playerControls">
-        {track?.audioUrl ? <audio src={track.audioUrl} controls /> : <audio controls />}
+        {track?.audioUrl ? (
+          <audio ref={audioRef} src={track.audioUrl} controls aria-label={messages.audioLabel} />
+        ) : (
+          <audio ref={audioRef} controls aria-label={messages.audioLabel} />
+        )}
       </div>
     </aside>
   )

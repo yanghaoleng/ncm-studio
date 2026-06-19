@@ -66,6 +66,7 @@ button:disabled {
 }
 
 button:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--primary), white 18%);
   outline-offset: 3px;
@@ -172,6 +173,21 @@ textarea:focus-visible {
   background: var(--surface);
   border: 1px solid var(--faint);
   cursor: pointer;
+}
+
+.languageButton {
+  width: auto;
+  min-width: 54px;
+  grid-template-columns: 16px auto;
+  gap: 5px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.languageButton span {
+  line-height: 1;
 }
 
 .workspace {
@@ -762,6 +778,9 @@ textarea:focus-visible {
 }
 
 .previewPane {
+  position: sticky;
+  bottom: 18px;
+  z-index: 8;
   display: grid;
   grid-template-columns: 74px minmax(120px, 1fr) minmax(260px, 0.9fr);
   align-items: center;
@@ -770,7 +789,13 @@ textarea:focus-visible {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--faint);
-  background: linear-gradient(135deg, var(--green-soft), var(--surface) 42%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--green-soft) 92%, transparent),
+    color-mix(in srgb, var(--surface) 94%, transparent) 42%
+  );
+  box-shadow: 0 -16px 42px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(18px);
 }
 
 .cover {
@@ -1063,7 +1088,7 @@ textarea:focus-visible {
 
 @media (max-width: 760px) {
   .app {
-    padding: 16px 12px 104px;
+    padding: 16px 12px 168px;
   }
 
   .topbar {
@@ -1115,6 +1140,8 @@ textarea:focus-visible {
 
   .previewPane {
     grid-template-columns: 58px minmax(0, 1fr);
+    bottom: 88px;
+    margin-top: 12px;
   }
 
   .cover {
