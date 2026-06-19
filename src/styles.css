@@ -844,6 +844,41 @@ textarea:focus-visible {
   height: 38px;
 }
 
+.siteFooter {
+  width: min(1240px, 100%);
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: center;
+}
+
+.githubFooterLink {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--faint);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.githubFooterLink:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary), transparent 58%);
+}
+
+.githubFooterLink svg {
+  align-self: flex-start;
+  margin-top: 8px;
+  color: var(--primary);
+}
+
 .emptyState {
   min-height: 426px;
   display: grid;

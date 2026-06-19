@@ -44,6 +44,7 @@ Bubble Gum - Clairo
 Automatic (Remastered 2014) - Utada`
 
 const CONFIRM_MODAL_EXIT_MS = 220
+const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
 
 const LANGUAGE_OPTIONS = [
   { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
@@ -1010,6 +1011,19 @@ function App() {
           )}
         </section>
       </main>
+
+      <footer className="siteFooter" data-enter>
+        <a
+          className="githubFooterLink"
+          href={GITHUB_REPOSITORY_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub repository"
+        >
+          <span>GitHub</span>
+          <ExternalLink size={14} />
+        </a>
+      </footer>
 
       {!!tracks.length && (
         <div className="bottomBar" data-enter>
