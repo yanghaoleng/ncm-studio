@@ -74,8 +74,14 @@ textarea:focus-visible {
 
 .app {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   color: var(--text);
-  padding: 22px clamp(16px, 3vw, 36px) 108px;
+  padding: 22px clamp(16px, 3vw, 36px) 22px;
+}
+
+.app.hasTracks {
+  padding-bottom: 22px;
 }
 
 .topbar,
@@ -845,15 +851,15 @@ textarea:focus-visible {
 }
 
 .siteFooter {
-  position: fixed;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  z-index: 12;
+  width: min(1240px, 100%);
   display: flex;
-  transform: translateX(-50%);
+  justify-content: flex-start;
+  gap: 16px;
+  margin: auto auto 0;
+  padding-top: 18px;
 }
 
-.githubFooterLink {
+.footerTextLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -865,12 +871,12 @@ textarea:focus-visible {
   transition: transform 180ms ease, color 180ms ease;
 }
 
-.githubFooterLink:hover {
+.footerTextLink:hover {
   transform: translateY(-1px);
   color: var(--text);
 }
 
-.githubFooterLink svg {
+.footerTextLink svg {
   flex: 0 0 auto;
   color: currentColor;
 }
@@ -1119,7 +1125,11 @@ textarea:focus-visible {
 
 @media (max-width: 760px) {
   .app {
-    padding: 16px 12px 168px;
+    padding: 16px 12px 20px;
+  }
+
+  .app.hasTracks {
+    padding-bottom: 168px;
   }
 
   .topbar {
@@ -1190,10 +1200,6 @@ textarea:focus-visible {
 
   .bottomBar {
     display: flex;
-  }
-
-  .siteFooter.hasTracks {
-    bottom: 86px;
   }
 
   .playlistActions {

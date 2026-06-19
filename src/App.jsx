@@ -45,6 +45,7 @@ Automatic (Remastered 2014) - Utada`
 
 const CONFIRM_MODAL_EXIT_MS = 220
 const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
+const FEEDBACK_IMESSAGE_URL = 'imessage://yanghaoleng@icloud.com'
 
 const LANGUAGE_OPTIONS = [
   { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
@@ -105,6 +106,9 @@ const I18N = {
     previewEmptyTitle: '选择一首已完成的歌曲',
     previewEmptySubtitle: '完成转换后可在线播放',
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
+    githubLinkLabel: 'GitHub 仓库',
+    feedbackLinkLabel: '提交反馈',
+    feedbackLinkAria: '通过 iMessage 提交反馈',
     themeToggleLabel: (theme) => (theme === 'light' ? '切换到深色模式' : '切换到浅色模式'),
     languageToggleLabel: (current, next) => `当前语言：${current}。切换到${next}`,
   },
@@ -160,6 +164,9 @@ const I18N = {
     previewEmptyTitle: 'Select a converted song',
     previewEmptySubtitle: 'Converted tracks can play here',
     audioLabel: 'Track preview player, press Space to play or pause',
+    githubLinkLabel: 'GitHub repository',
+    feedbackLinkLabel: 'Feedback',
+    feedbackLinkAria: 'Send feedback with iMessage',
     themeToggleLabel: (theme) => (theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'),
     languageToggleLabel: (current, next) => `Current language: ${current}. Switch to ${next}`,
   },
@@ -215,6 +222,9 @@ const I18N = {
     previewEmptyTitle: '変換済みの曲を選択',
     previewEmptySubtitle: '変換後ここで再生できます',
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
+    githubLinkLabel: 'GitHub リポジトリ',
+    feedbackLinkLabel: 'フィードバック',
+    feedbackLinkAria: 'iMessage でフィードバックを送信',
     themeToggleLabel: (theme) => (theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'),
     languageToggleLabel: (current, next) => `現在の言語：${current}。${next}に切り替え`,
   },
@@ -786,7 +796,7 @@ function App() {
   const convertingCount = tracks.filter((track) => track.status === 'converting').length
 
   return (
-    <div className="app" ref={rootRef}>
+    <div className={`app ${tracks.length ? 'hasTracks' : ''}`} ref={rootRef}>
       <header className="topbar" data-enter>
           <div className="brand">
             <div className="brandMark">
@@ -1012,15 +1022,23 @@ function App() {
         </section>
       </main>
 
-      <footer className={`siteFooter ${tracks.length ? 'hasTracks' : ''}`} data-enter>
+      <footer className="siteFooter" data-enter>
         <a
-          className="githubFooterLink"
+          className="footerTextLink"
           href={GITHUB_REPOSITORY_URL}
           target="_blank"
           rel="noreferrer"
-          aria-label="GitHub repository"
+          aria-label={messages.githubLinkLabel}
         >
           <span>GitHub</span>
+          <ExternalLink size={14} />
+        </a>
+        <a
+          className="footerTextLink"
+          href={FEEDBACK_IMESSAGE_URL}
+          aria-label={messages.feedbackLinkAria}
+        >
+          <span>{messages.feedbackLinkLabel}</span>
           <ExternalLink size={14} />
         </a>
       </footer>
