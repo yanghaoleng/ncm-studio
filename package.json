@@ -10,6 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-react": "^5.1.1",
     "browser-id3-writer": "^6.0.0",
     "crypto-js": "^4.2.0",
