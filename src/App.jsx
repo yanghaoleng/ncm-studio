@@ -1012,7 +1012,7 @@ function App() {
         </section>
       </main>
 
-      <footer className="siteFooter" data-enter>
+      <footer className={`siteFooter ${tracks.length ? 'hasTracks' : ''}`} data-enter>
         <a
           className="githubFooterLink"
           href={GITHUB_REPOSITORY_URL}

@@ -845,10 +845,11 @@ textarea:focus-visible {
 }
 
 .siteFooter {
-  width: min(1240px, 100%);
-  margin: 18px auto 0;
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 12;
   display: flex;
-  justify-content: center;
 }
 
 .githubFooterLink {
@@ -1194,6 +1195,11 @@ textarea:focus-visible {
 
   .bottomBar {
     display: flex;
+  }
+
+  .siteFooter.hasTracks {
+    right: 14px;
+    bottom: 86px;
   }
 
   .playlistActions {
