@@ -5,5 +5,5 @@
 node_modules
 dist
 .DS_Store
+.sync-conflict-*.DS_Store
 测试
-Design.MD

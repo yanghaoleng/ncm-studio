@@ -37,6 +37,7 @@ NCM Studio 是一个浏览器优先的网易云音乐歌单整理和本地 `.ncm
 - 尽可能读取元数据和内嵌封面。
 - 尽可能写入 MP3 ID3 标题、歌手、专辑和封面信息。
 - 单首下载或把已完成的本地转换结果打包成 ZIP。
+- 大批量 ZIP 打包使用百分比进度；进度长时间不变或生成失败时，会提示重试或分批处理。
 - 响应式界面，适配桌面和移动端。
 
 ## 复制清单格式
@@ -66,6 +67,15 @@ https://music.163.com/song/media/outer/url?id=00000001.mp3
 - 本地 `.ncm` 文件只在浏览器里处理，不会上传到应用服务器。
 - 歌单增强解析会调用配置的 DeepSeek API；如果不配置 API Key，就只使用本地解析。
 - 网易云歌曲索引通过服务端 API 做关键词查询，但不会上传本地音频文件。
+
+## 大批量 ZIP 打包
+
+- MP3/FLAC 等音频本身已经压缩，ZIP 显式使用 `STORE` 模式，不做无效的二次压缩。
+- 每首歌转换完成时同步保存 CRC32；打包时直接组装标准 ZIP 文件头和中央目录，不再重读整批音频。
+- 音频 Blob 会被原样引用到 ZIP Blob，避免再复制一份整包二进制数据。
+- 按文件数量更新 0%-100% 进度；100 首以上会定期让出渲染帧，保持页面可响应。
+- 20 秒没有进度变化时显示卡顿提示；异常会进入可重试的失败状态。
+- 单个 ZIP 目前限制在 4 GB 以内。总体积过大时，请减少文件数量后分批处理。
 
 ## 合法使用声明
 
@@ -110,12 +120,24 @@ VITE_DEEPSEEK_MODEL=deepseek-v4-flash
 VITE_DEEPSEEK_CHAT_URL=https://api.deepseek.com/chat/completions
 ```
 
-## 部署
+## API
 
-项目可以部署到 Vercel。当前包含两个 Serverless API：
+当前包含两个 Vercel Serverless API：
 
 - `api/deepseek.js`：DeepSeek 增强解析代理。
 - `api/netease-first-results.js`：根据歌曲信息索引网易云首条结果，并生成详情页和官方外链入口。
+
+## 关键技术架构
+
+- React + Vite 负责单页应用和响应式界面。
+- `.ncm` 解析、音频转换、ID3 写入和 ZIP 打包均在浏览器本地完成。
+- `src/lib/zip.js` 封装 CRC32、ZIP `STORE` 结构、Blob 组合、进度、重名保护和停滞检测。
+- DeepSeek 增强解析和网易云索引由 Vercel Serverless API 转发。
+- FileSaver 触发浏览器下载。
+
+## 部署
+
+项目可以部署到 Vercel。
 
 注意：Vercel 机房网络不等同于中国大陆用户网络。网易云媒体链接是否可用，应以实际使用网络打开结果为准。
 
@@ -123,7 +145,6 @@ VITE_DEEPSEEK_CHAT_URL=https://api.deepseek.com/chat/completions
 
 - React
 - Vite
-- JSZip
 - FileSaver
 - CryptoJS
 - browser-id3-writer
@@ -137,7 +158,6 @@ VITE_DEEPSEEK_CHAT_URL=https://api.deepseek.com/chat/completions
 - Vercel Functions Region：https://vercel.com/docs/functions/configuring-functions/region
 - ncmdump：https://github.com/taurusxin/ncmdump
 - browser-id3-writer：https://github.com/egoroof/browser-id3-writer
-- JSZip：https://stuk.github.io/jszip/
 
 ## 致谢
 

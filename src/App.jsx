@@ -1,6 +1,5 @@
 import { createElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { saveAs } from 'file-saver'
-import JSZip from 'jszip'
 import gsap from 'gsap'
 import {
   Archive,
@@ -19,6 +18,7 @@ import {
   Sparkles,
   Sun,
   Trash2,
+  TriangleAlert,
   UploadCloud,
   Wand2,
   X,
@@ -33,6 +33,7 @@ import {
   playlistSearchQuery,
   safeFilename,
 } from './lib/format.js'
+import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 
 const seedPlaylist = `LAST SUMMER WHISPER - Tanaka Yuri
 喜欢 - 张悬
@@ -92,6 +93,8 @@ const I18N = {
     convertAll: '全部转换',
     downloadZip: '打包下载',
     zipping: '打包中',
+    zipStalled: '打包进度暂时没有变化。请再等一会；若持续卡住，请刷新后重试，或减少文件数量后分批打包。',
+    zipFailed: '打包失败，请重试。若文件较多，建议减少数量后分批打包。',
     readyDownloadSuffix: '个 MP3 可下载',
     zipShort: 'ZIP',
     clearFinished: '清空完成',
@@ -150,6 +153,8 @@ const I18N = {
     convertAll: 'Convert all',
     downloadZip: 'Download ZIP',
     zipping: 'Zipping',
+    zipStalled: 'ZIP progress has paused. Please wait a little longer; if it remains stuck, refresh and retry or package fewer files at a time.',
+    zipFailed: 'ZIP creation failed. Please retry, or package fewer files at a time when the list is large.',
     readyDownloadSuffix: 'MP3 ready',
     zipShort: 'ZIP',
     clearFinished: 'Clear done',
@@ -208,6 +213,8 @@ const I18N = {
     convertAll: 'すべて変換',
     downloadZip: 'ZIP ダウンロード',
     zipping: '圧縮中',
+    zipStalled: 'ZIP の進捗が一時停止しています。しばらく待ち、改善しない場合は再読み込み後に再試行するか、ファイル数を減らして分割してください。',
+    zipFailed: 'ZIP の作成に失敗しました。再試行するか、ファイル数を減らして分割してください。',
     readyDownloadSuffix: '個の MP3 がダウンロード可能',
     zipShort: 'ZIP',
     clearFinished: '完了をクリア',
@@ -271,6 +278,8 @@ function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isZipping, setIsZipping] = useState(false)
+  const [zipProgress, setZipProgress] = useState(0)
+  const [zipFeedback, setZipFeedback] = useState(null)
   const [copyState, setCopyState] = useState('')
   const [lastParsedText, setLastParsedText] = useState('')
   const [aiEnhancedText, setAiEnhancedText] = useState('')
@@ -684,6 +693,7 @@ function App() {
     try {
       const result = await convertNcmFile(track.file, { enrichTags: true })
       clearInterval(pulse)
+      const archiveCrc32 = calculateCrc32(result.audioBytes)
       const audioBlob = new Blob([result.audioBytes], { type: result.mime })
       const audioUrl = URL.createObjectURL(audioBlob)
       const coverUrl = result.coverBytes
@@ -697,6 +707,7 @@ function App() {
                 ...item,
                 ...result,
                 audioBlob,
+                archiveCrc32,
                 audioUrl,
                 coverUrl,
                 status: 'ready',
@@ -776,14 +787,28 @@ function App() {
   async function downloadZip() {
     const readyTracks = tracks.filter((track) => track.status === 'ready' && track.audioBlob)
     if (!readyTracks.length) return
+
     setIsZipping(true)
-    const zip = new JSZip()
-    readyTracks.forEach((track) => {
-      zip.file(track.filename || `${safeFilename(track.title)}.mp3`, track.audioBlob)
-    })
-    const blob = await zip.generateAsync({ type: 'blob' })
-    saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
-    setIsZipping(false)
+    setZipProgress(0)
+    setZipFeedback(null)
+
+    try {
+      const blob = await buildTracksZip(readyTracks, {
+        onProgress: (percent) => {
+          setZipProgress(percent)
+          setZipFeedback((current) => (current?.type === 'warning' ? null : current))
+        },
+        onStall: () => {
+          setZipFeedback({ type: 'warning', message: messages.zipStalled })
+        },
+      })
+      saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
+    } catch (error) {
+      console.error('Failed to build ZIP archive', error)
+      setZipFeedback({ type: 'error', message: messages.zipFailed })
+    } finally {
+      setIsZipping(false)
+    }
   }
 
   function convertAll() {
@@ -989,12 +1014,27 @@ function App() {
                     <RefreshCw size={17} />
                     {messages.convertAll}
                   </button>
-                  <button className="primaryButton" type="button" onClick={downloadZip} disabled={!readyCount || isZipping}>
+                  <button
+                    className={`primaryButton zipButton ${isZipping ? 'isZipping' : ''}`}
+                    type="button"
+                    onClick={downloadZip}
+                    disabled={!readyCount || isZipping}
+                    aria-busy={isZipping}
+                    style={{ '--zip-progress': `${zipProgress}%` }}
+                  >
+                    {isZipping && <span className="zipButtonFill" aria-hidden="true" />}
                     <Archive size={17} />
-                    {isZipping ? messages.zipping : messages.downloadZip}
+                    <span>{isZipping ? `${messages.zipping} ${zipProgress}%` : messages.downloadZip}</span>
                   </button>
                 </div>
               </div>
+
+              {zipFeedback && (
+                <div className={`zipAlert ${zipFeedback.type}`} role={zipFeedback.type === 'error' ? 'alert' : 'status'}>
+                  <TriangleAlert size={17} />
+                  <span>{zipFeedback.message}</span>
+                </div>
+              )}
 
               <div className="queueTable">
                 {displayTracks.map((track, index) => (
@@ -1053,9 +1093,17 @@ function App() {
             <Sparkles size={17} />
             {messages.convertAll}
           </button>
-          <button type="button" onClick={downloadZip} disabled={!readyCount || isZipping}>
+          <button
+            className={`zipButton ${isZipping ? 'isZipping' : ''}`}
+            type="button"
+            onClick={downloadZip}
+            disabled={!readyCount || isZipping}
+            aria-busy={isZipping}
+            style={{ '--zip-progress': `${zipProgress}%` }}
+          >
+            {isZipping && <span className="zipButtonFill" aria-hidden="true" />}
             <Archive size={17} />
-            {messages.zipShort}
+            <span>{isZipping ? `${messages.zipShort} ${zipProgress}%` : messages.zipShort}</span>
           </button>
           <button type="button" onClick={clearFinished} disabled={!readyCount}>
             <Trash2 size={17} />

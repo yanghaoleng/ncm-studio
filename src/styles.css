@@ -330,6 +330,34 @@ textarea:focus-visible {
   background: #083a8e;
 }
 
+.zipButton {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 136px;
+}
+
+.zipButton.isZipping:disabled {
+  cursor: wait;
+  opacity: 1;
+}
+
+.zipButton > svg,
+.zipButton > span:not(.zipButtonFill) {
+  position: relative;
+  z-index: 1;
+}
+
+.zipButtonFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 0;
+  width: var(--zip-progress, 0%);
+  background: rgba(255, 255, 255, 0.18);
+  transition: width 180ms ease;
+  pointer-events: none;
+}
+
 .solidCycle {
   color: #333333;
   animation: solid-color-cycle 5.8s ease-in-out infinite;
@@ -365,6 +393,32 @@ textarea:focus-visible {
   background: var(--rose-soft);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.zipAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -2px 0 12px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.zipAlert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.zipAlert.warning {
+  color: #854d0e;
+  background: var(--yellow-soft);
+}
+
+.zipAlert.error {
+  color: #9f1239;
+  background: var(--rose-soft);
 }
 
 .matchRow {
@@ -955,6 +1009,14 @@ textarea:focus-visible {
   padding: 0 10px;
   color: var(--text);
   background: var(--surface-2);
+}
+
+.bottomBar .zipButton {
+  min-width: 0;
+}
+
+.bottomBar .zipButtonFill {
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
 }
 
 .modalBackdrop {
