@@ -10,9 +10,11 @@
 - [x] 将空状态内容网格间距收紧为 8px。
 - [x] 完成构建与桌面、手机浏览器验证：实际间距 8px，无横向溢出或控制台错误。
 - [x] 将中、英、日三种语言的面板标题更新为对应的 NCM 转 MP3 文案。
-- [ ] 提交、推送并部署生产环境，完成线上验收。
+- [x] 业务改动提交为 `98639b3` 并推送到 GitHub `main`。
+- [x] Vercel 生产部署 `dpl_AfYVdvoea5qY6K1JVNHYdDSFf328` 已就绪并绑定 `https://ncm.mikeywa.icu`。
+- [x] 线上桌面与手机端验收通过；首页返回 200，旧 DeepSeek 和网易搜索 API 均返回 404。
 
 ## 说明
 
 - 官方说明链接：`https://music.163.com/st/ncmcli#setup`。
-- 本次只部署本地预览，尚未发布生产环境。
+- 当前生产版本已发布，正式入口：`https://ncm.mikeywa.icu`。
