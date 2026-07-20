@@ -231,12 +231,19 @@ async function loadImageBytes(url) {
   }
 }
 
-async function attachMp3Tags(audioBytes, metadata, coverBytes) {
+function exactArrayBuffer(bytes) {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+}
+
+export async function attachMp3Tags(audioBytes, metadata, coverBytes) {
   if (detectMime(audioBytes) !== 'audio/mpeg') return audioBytes
 
   try {
-    const ID3Writer = (await import('browser-id3-writer')).default
-    const writer = new ID3Writer(audioBytes.buffer.slice(0))
+    const id3WriterModule = await import('browser-id3-writer')
+    const ID3Writer = id3WriterModule.ID3Writer || id3WriterModule.default
+    if (typeof ID3Writer !== 'function') throw new Error('ID3Writer 导出不可用')
+
+    const writer = new ID3Writer(exactArrayBuffer(audioBytes))
     const title = metadata.musicName || metadata.title
     const artist = joinArtists(metadata.artist) || metadata.artistName
     const album = metadata.album || metadata.albumName
@@ -247,14 +254,15 @@ async function attachMp3Tags(audioBytes, metadata, coverBytes) {
     if (coverBytes?.length) {
       writer.setFrame('APIC', {
         type: 3,
-        data: coverBytes,
+        data: exactArrayBuffer(coverBytes),
         description: 'Cover',
       })
     }
 
     writer.addTag()
     return new Uint8Array(writer.arrayBuffer)
-  } catch {
+  } catch (error) {
+    console.warn('MP3 标签写入失败，将保留原始音频', error)
     return audioBytes
   }
 }
