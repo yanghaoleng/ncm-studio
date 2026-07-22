@@ -267,7 +267,7 @@ export async function attachMp3Tags(audioBytes, metadata, coverBytes) {
   }
 }
 
-export async function convertNcmFile(file, { enrichTags = true } = {}) {
+export async function convertNcmFile(file, { enrichTags = true, fetchCover = true } = {}) {
   const bytes = new Uint8Array(await file.arrayBuffer())
   const header = bytesToBinary(bytes.slice(0, 8))
 
@@ -294,7 +294,7 @@ export async function convertNcmFile(file, { enrichTags = true } = {}) {
 
   const { audioBytes: rawAudio, coverBytes: embeddedCover } = readAudioSection(bytes, offset, keyBox)
   const mime = detectMime(rawAudio, metadata)
-  const coverBytes = embeddedCover || (enrichTags ? await loadImageBytes(metadata.albumPic) : null)
+  const coverBytes = embeddedCover || (enrichTags && fetchCover ? await loadImageBytes(metadata.albumPic) : null)
   const taggedAudio = enrichTags ? await attachMp3Tags(rawAudio, metadata, coverBytes) : rawAudio
   const extension = extensionFromMime(mime)
   const artist = joinArtists(metadata.artist)

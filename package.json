@@ -1,33 +1,68 @@
 {
-  "name": "ncm-studio",
-  "private": true,
+  "name": "ncm-studio-cli",
   "version": "0.1.0",
+  "description": "Convert local NCM files to playable audio from the command line.",
   "type": "module",
+  "bin": {
+    "ncm-studio": "bin/ncm-studio.mjs"
+  },
+  "exports": "./src/lib/ncm.js",
+  "files": [
+    "bin/ncm-studio.mjs",
+    "src/lib/ncm.js",
+    "src/lib/format.js",
+    "README.MD",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yanghaoleng/ncm-studio.git"
+  },
+  "homepage": "https://ncm.mikeywa.icu",
+  "bugs": {
+    "url": "https://github.com/yanghaoleng/ncm-studio/issues"
+  },
+  "keywords": [
+    "ncm",
+    "netease-cloud-music",
+    "audio",
+    "mp3",
+    "cli"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "cli": "node ./bin/ncm-studio.mjs",
     "lint": "eslint .",
-    "test": "node --test"
+    "test": "node --test",
+    "prepublishOnly": "npm test && npm run lint && npm run build"
   },
   "dependencies": {
-    "@vercel/analytics": "^2.0.1",
-    "@vitejs/plugin-react": "^5.1.1",
     "browser-id3-writer": "^6.0.0",
-    "crypto-js": "^4.2.0",
-    "file-saver": "^2.0.5",
-    "gsap": "^3.14.2",
-    "lucide-react": "^0.556.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "vite": "^7.2.7"
+    "crypto-js": "^4.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@vercel/analytics": "^2.0.1",
+    "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "file-saver": "^2.0.5",
+    "gsap": "^3.14.2",
     "globals": "^16.5.0",
-    "playwright": "^1.60.0"
+    "lucide-react": "^0.556.0",
+    "playwright": "^1.60.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "vite": "^7.2.7"
   }
 }
