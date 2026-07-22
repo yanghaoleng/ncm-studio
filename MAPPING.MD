@@ -18,3 +18,6 @@
 | AI 输出 | CLI 机器可读结果 | stdout JSON | `--json`, `outputResult` |
 | 离线开关 | CLI 禁止缺失封面请求 | CLI 选项 | `--no-network`, `fetchCover` |
 | CLI 重名保护 | 输出文件自动加后缀 | 无可视组件 | `destinationFor`, `--overwrite` |
+| 安装本地CLI窗口 | 主面板右侧 npm 复制入口 | `.cliInstallPanel`, `.cliPackageLink` | `NPM_PACKAGE_URL`, `copyCliPackageLink` |
+| CLI复制按钮 | 框内“安装链接”与 npm 地址 | `.cliPackageLink` | `copyCliPackageLink` |
+| 复制成功 | CLI 链接框变绿并显示对钩 | `.cliPackageLink.isCopied` | `cliCopyStatus` |

@@ -3,6 +3,8 @@ import { saveAs } from 'file-saver'
 import gsap from 'gsap'
 import {
   Archive,
+  Check,
+  Copy,
   Download,
   ExternalLink,
   FileMusic,
@@ -12,6 +14,7 @@ import {
   RefreshCw,
   Sparkles,
   Sun,
+  Terminal,
   Trash2,
   TriangleAlert,
   UploadCloud,
@@ -24,6 +27,7 @@ import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
 const FEEDBACK_IMESSAGE_URL = 'imessage://yanghaoleng@icloud.com'
 const NETEASE_PLAYLIST_IMPORT_URL = 'https://music.163.com/st/ncmcli#setup'
+const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
 
 const LANGUAGE_OPTIONS = [
   { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
@@ -58,6 +62,12 @@ const I18N = {
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
     platformImportNote: '其他音乐平台推荐使用网易官方歌单导入工具或者cli来快速创建歌单',
     platformImportLinkAria: '打开网易云官方歌单导入工具和 CLI 使用说明',
+    localCliTitle: '安装CLI让AI帮你处理',
+    localCliSummary: '复制链接给到本地的AI，可以直接处理本地ncm文件',
+    localCliLinkLabel: '安装链接',
+    localCliLinkAria: '复制 ncm-studio-cli 的 npm 安装链接',
+    cliLinkCopied: '复制成功',
+    cliLinkCopyFailed: '复制失败',
     githubLinkLabel: 'GitHub 仓库',
     feedbackLinkLabel: '提交反馈',
     feedbackLinkAria: '通过 iMessage 提交反馈',
@@ -90,6 +100,12 @@ const I18N = {
     audioLabel: 'Track preview player, press Space to play or pause',
     platformImportNote: 'For other music platforms, use the official NetEase playlist import tool or CLI to quickly create playlists.',
     platformImportLinkAria: 'Open the official NetEase playlist import tool and CLI guide',
+    localCliTitle: 'Install CLI for AI processing',
+    localCliSummary: 'Copy this link to a local AI so it can process local NCM files directly.',
+    localCliLinkLabel: 'Install link',
+    localCliLinkAria: 'Copy the ncm-studio-cli npm package link',
+    cliLinkCopied: 'Copied',
+    cliLinkCopyFailed: 'Copy failed',
     githubLinkLabel: 'GitHub repository',
     feedbackLinkLabel: 'Feedback',
     feedbackLinkAria: 'Send feedback with iMessage',
@@ -122,6 +138,12 @@ const I18N = {
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
     platformImportNote: '他の音楽プラットフォームでは、NetEase 公式のプレイリストインポートツールまたは CLI でプレイリストをすばやく作成できます。',
     platformImportLinkAria: 'NetEase 公式プレイリストインポートツールと CLI のガイドを開く',
+    localCliTitle: 'CLI を入れて AI で処理',
+    localCliSummary: 'このリンクをローカル AI に渡すと、ローカル NCM ファイルを直接処理できます。',
+    localCliLinkLabel: 'インストールリンク',
+    localCliLinkAria: 'ncm-studio-cli の npm インストールリンクをコピー',
+    cliLinkCopied: 'コピー完了',
+    cliLinkCopyFailed: 'コピー失敗',
     githubLinkLabel: 'GitHub リポジトリ',
     feedbackLinkLabel: 'フィードバック',
     feedbackLinkAria: 'iMessage でフィードバックを送信',
@@ -163,7 +185,9 @@ function App() {
   const [isZipping, setIsZipping] = useState(false)
   const [zipProgress, setZipProgress] = useState(0)
   const [zipFeedback, setZipFeedback] = useState(null)
+  const [cliCopyStatus, setCliCopyStatus] = useState('')
   const fileInputRef = useRef(null)
+  const cliCopyTimerRef = useRef(null)
   const tracksRef = useRef([])
   const audioRef = useRef(null)
   const rootRef = useGsapIntro([])
@@ -228,12 +252,37 @@ function App() {
 
   useEffect(() => {
     return () => {
+      if (cliCopyTimerRef.current) window.clearTimeout(cliCopyTimerRef.current)
       tracksRef.current.forEach((track) => {
         if (track.audioUrl) URL.revokeObjectURL(track.audioUrl)
         if (track.coverUrl) URL.revokeObjectURL(track.coverUrl)
       })
     }
   }, [])
+
+  async function copyCliPackageLink() {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(NPM_PACKAGE_URL)
+      } else {
+        const textArea = document.createElement('textarea')
+        textArea.value = NPM_PACKAGE_URL
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.select()
+        const copied = document.execCommand('copy')
+        textArea.remove()
+        if (!copied) throw new Error('Clipboard unavailable')
+      }
+      setCliCopyStatus('success')
+    } catch {
+      setCliCopyStatus('error')
+    }
+
+    if (cliCopyTimerRef.current) window.clearTimeout(cliCopyTimerRef.current)
+    cliCopyTimerRef.current = window.setTimeout(() => setCliCopyStatus(''), 2200)
+  }
 
   async function convertTrack(track, options = {}) {
     setTracks((current) =>
@@ -541,6 +590,33 @@ function App() {
             </>
           )}
         </section>
+
+        <aside className="cliInstallPanel" data-enter>
+          <div className="cliInstallHeading">
+            <span className="cliInstallIcon" aria-hidden="true">
+              <Terminal size={18} />
+            </span>
+            <h2>{messages.localCliTitle}</h2>
+          </div>
+          <p>{messages.localCliSummary}</p>
+          <button
+            className={`cliPackageLink ${cliCopyStatus === 'success' ? 'isCopied' : ''} ${cliCopyStatus === 'error' ? 'isError' : ''}`}
+            type="button"
+            onClick={copyCliPackageLink}
+            aria-label={messages.localCliLinkAria}
+          >
+            <span className="cliPackagePrefix">{messages.localCliLinkLabel}</span>
+            <span className="cliPackageValue">npmjs.com/package/ncm-studio-cli</span>
+            {cliCopyStatus === 'success' ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+          <span className="visuallyHidden" role="status" aria-live="polite">
+            {cliCopyStatus === 'success'
+              ? messages.cliLinkCopied
+              : cliCopyStatus === 'error'
+                ? messages.cliLinkCopyFailed
+                : ''}
+          </span>
+        </aside>
 
       </main>
 

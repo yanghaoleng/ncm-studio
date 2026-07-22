@@ -185,8 +185,8 @@ textarea:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -194,6 +194,122 @@ textarea:focus-visible {
   border: 1px solid var(--faint);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: var(--shadow);
+}
+
+.cliInstallPanel {
+  position: sticky;
+  top: 16px;
+  padding: 16px;
+  border: 1px solid var(--faint);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.cliInstallHeading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cliInstallIcon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #166534;
+  background: var(--green-soft);
+}
+
+:root[data-theme='dark'] .cliInstallIcon {
+  color: #8ce99a;
+}
+
+.cliInstallHeading h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.cliInstallPanel > p {
+  margin: 12px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cliPackageLink {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--faint);
+  border-radius: 9px;
+  color: var(--primary);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.cliPackageValue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cliPackagePrefix {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.cliPackageLink svg {
+  flex: 0 0 auto;
+}
+
+.cliPackageLink:hover {
+  border-color: color-mix(in srgb, var(--primary), transparent 56%);
+  background: color-mix(in srgb, var(--surface-2) 82%, var(--blue-soft));
+}
+
+.cliPackageLink.isCopied {
+  color: #18733a;
+  border-color: color-mix(in srgb, #18733a, transparent 48%);
+  background: var(--green-soft);
+}
+
+:root[data-theme='dark'] .cliPackageLink.isCopied {
+  color: #8ce99a;
+}
+
+.cliPackageLink.isError,
+:root[data-theme='dark'] .cliPackageLink.isError {
+  color: #e65d75;
+  border-color: color-mix(in srgb, #e65d75, transparent 48%);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .queueHeader h2 {
   font-size: 17px;
@@ -831,6 +947,16 @@ textarea:focus-visible {
     display: flex;
   }
 
+}
+
+@media (max-width: 920px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cliInstallPanel {
+    position: static;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
