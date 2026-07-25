@@ -7,6 +7,7 @@ NCM Studio 是一个浏览器和 CLI 均可使用的本地 `.ncm` 文件处理�
 ## 在线示例
 
 - 在线站点：https://ncm.mikeywa.icu
+- 作者主页：https://mikeywa.icu
 - npm：https://www.npmjs.com/package/ncm-studio-cli
 - GitHub 仓库：https://github.com/yanghaoleng/ncm-studio
 

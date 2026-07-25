@@ -25,7 +25,7 @@ import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 
 const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
-const FEEDBACK_IMESSAGE_URL = 'imessage://yanghaoleng@icloud.com'
+const AUTHOR_HOME_URL = 'https://mikeywa.icu'
 const NETEASE_PLAYLIST_IMPORT_URL = 'https://music.163.com/st/ncmcli#setup'
 const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
 
@@ -69,8 +69,8 @@ const I18N = {
     cliLinkCopied: '复制成功',
     cliLinkCopyFailed: '复制失败',
     githubLinkLabel: 'GitHub 仓库',
-    feedbackLinkLabel: '提交反馈',
-    feedbackLinkAria: '通过 iMessage 提交反馈',
+    authorLinkLabel: '作者主页',
+    authorLinkAria: '打开作者主页',
     themeToggleLabel: (theme) => (theme === 'light' ? '切换到深色模式' : '切换到浅色模式'),
     languageToggleLabel: (current, next) => `当前语言：${current}。切换到${next}`,
   },
@@ -107,8 +107,8 @@ const I18N = {
     cliLinkCopied: 'Copied',
     cliLinkCopyFailed: 'Copy failed',
     githubLinkLabel: 'GitHub repository',
-    feedbackLinkLabel: 'Feedback',
-    feedbackLinkAria: 'Send feedback with iMessage',
+    authorLinkLabel: 'Author',
+    authorLinkAria: 'Open the author homepage',
     themeToggleLabel: (theme) => (theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'),
     languageToggleLabel: (current, next) => `Current language: ${current}. Switch to ${next}`,
   },
@@ -145,8 +145,8 @@ const I18N = {
     cliLinkCopied: 'コピー完了',
     cliLinkCopyFailed: 'コピー失敗',
     githubLinkLabel: 'GitHub リポジトリ',
-    feedbackLinkLabel: 'フィードバック',
-    feedbackLinkAria: 'iMessage でフィードバックを送信',
+    authorLinkLabel: '作者ページ',
+    authorLinkAria: '作者ホームページを開く',
     themeToggleLabel: (theme) => (theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'),
     languageToggleLabel: (current, next) => `現在の言語：${current}。${next}に切り替え`,
   },
@@ -633,10 +633,12 @@ function App() {
         </a>
         <a
           className="footerTextLink"
-          href={FEEDBACK_IMESSAGE_URL}
-          aria-label={messages.feedbackLinkAria}
+          href={AUTHOR_HOME_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={messages.authorLinkAria}
         >
-          <span>{messages.feedbackLinkLabel}</span>
+          <span>{messages.authorLinkLabel}</span>
           <ExternalLink size={14} />
         </a>
       </footer>

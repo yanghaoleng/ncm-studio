@@ -21,3 +21,4 @@
 | 安装本地CLI窗口 | 主面板右侧 npm 复制入口 | `.cliInstallPanel`, `.cliPackageLink` | `NPM_PACKAGE_URL`, `copyCliPackageLink` |
 | CLI复制按钮 | 框内“安装链接”与 npm 地址 | `.cliPackageLink` | `copyCliPackageLink` |
 | 复制成功 | CLI 链接框变绿并显示对钩 | `.cliPackageLink.isCopied` | `cliCopyStatus` |
+| 作者主页 | 页脚作者站点外链 | `.siteFooter .footerTextLink` | `AUTHOR_HOME_URL`, `authorLinkLabel` |
