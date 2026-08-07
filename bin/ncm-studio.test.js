@@ -20,7 +20,7 @@ test('CLI prints help', () => {
 test('CLI prints the package version', () => {
   const result = runCli(['--version'])
   assert.equal(result.status, 0)
-  assert.equal(result.stdout.trim(), '0.1.0')
+  assert.equal(result.stdout.trim(), '0.2.0')
 })
 
 test('CLI returns machine-readable errors', () => {
