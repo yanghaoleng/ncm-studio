@@ -5,6 +5,7 @@ import {
   Archive,
   Check,
   Copy,
+  Database,
   Download,
   ExternalLink,
   FileMusic,
@@ -20,13 +21,13 @@ import {
   UploadCloud,
   X,
 } from 'lucide-react'
-import { convertNcmFile } from './lib/ncm.js'
+import { convertMusicFile, isSupportedMusicFile } from './lib/convert.js'
+import { loadKugouKeyFile } from './lib/kugou.js'
 import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 
 const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
 const AUTHOR_HOME_URL = 'https://mikeywa.icu'
-const NETEASE_PLAYLIST_IMPORT_URL = 'https://music.163.com/st/ncmcli#setup'
 const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
 
 const LANGUAGE_OPTIONS = [
@@ -39,9 +40,9 @@ const I18N = {
   zh: {
     appTitle: 'NCM Studio',
     convertError: '转换失败',
-    processingTitle: 'NCM文件转MP3',
-    chooseDropTitle: '选择或拖入 NCM 文件',
-    chooseDropSubtitle: '文件只会在本地处理',
+    processingTitle: '音乐文件转MP3',
+    chooseDropTitle: '选择或拖入音乐文件',
+    chooseDropSubtitle: '支持 NCM、KGG、KGM、KGMA、VPR，文件只在本地处理',
     dropOverlayTitle: '松手继续导入',
     dropOverlaySubtitle: '新文件会自动加入处理队列',
     queueSummary: ({ total, ready, converting }) =>
@@ -60,8 +61,13 @@ const I18N = {
     previewEmptyTitle: '选择一首已完成的歌曲',
     previewEmptySubtitle: '完成转换后可在线播放',
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
-    platformImportNote: '其他音乐平台推荐使用网易官方歌单导入工具或者cli来快速创建歌单',
-    platformImportLinkAria: '打开网易云官方歌单导入工具和 CLI 使用说明',
+    platformImportNote: '支持网易云 NCM 与酷狗 KGG / KGM / KGMA / VPR',
+    kugouKeyTitle: '酷狗 KGG 密钥库',
+    kugouKeySummary: 'KGM、KGMA、VPR 无需密钥库。KGG 请导入本机 KGMusicV3.db 或 kgg.key。',
+    kugouKeyChoose: '导入密钥库',
+    kugouKeyLoading: '正在读取密钥库',
+    kugouKeyReady: ({ name, count }) => `${name} · ${count} 条密钥已就绪`,
+    kugouKeyInputAria: '选择酷狗 KGMusicV3.db 或 kgg.key 密钥文件',
     localCliTitle: '安装CLI让AI帮你处理',
     localCliSummary: '复制链接给到本地的AI，可以直接处理本地ncm文件',
     localCliLinkLabel: '安装链接',
@@ -77,9 +83,9 @@ const I18N = {
   en: {
     appTitle: 'NCM Studio',
     convertError: 'Conversion failed',
-    processingTitle: 'NCM to MP3',
-    chooseDropTitle: 'Choose or drop NCM files',
-    chooseDropSubtitle: 'Files are processed locally only',
+    processingTitle: 'Music files to MP3',
+    chooseDropTitle: 'Choose or drop music files',
+    chooseDropSubtitle: 'Supports NCM, KGG, KGM, KGMA and VPR. Files stay on this device.',
     dropOverlayTitle: 'Release to import',
     dropOverlaySubtitle: 'New files will join the queue',
     queueSummary: ({ total, ready, converting }) =>
@@ -98,8 +104,13 @@ const I18N = {
     previewEmptyTitle: 'Select a converted song',
     previewEmptySubtitle: 'Converted tracks can play here',
     audioLabel: 'Track preview player, press Space to play or pause',
-    platformImportNote: 'For other music platforms, use the official NetEase playlist import tool or CLI to quickly create playlists.',
-    platformImportLinkAria: 'Open the official NetEase playlist import tool and CLI guide',
+    platformImportNote: 'Supports NetEase NCM and KuGou KGG / KGM / KGMA / VPR',
+    kugouKeyTitle: 'KuGou KGG key database',
+    kugouKeySummary: 'KGM, KGMA and VPR need no database. For KGG, import KGMusicV3.db or kgg.key from this device.',
+    kugouKeyChoose: 'Import key database',
+    kugouKeyLoading: 'Reading key database',
+    kugouKeyReady: ({ name, count }) => `${name} · ${count} keys ready`,
+    kugouKeyInputAria: 'Choose a KuGou KGMusicV3.db or kgg.key file',
     localCliTitle: 'Install CLI for AI processing',
     localCliSummary: 'Copy this link to a local AI so it can process local NCM files directly.',
     localCliLinkLabel: 'Install link',
@@ -115,9 +126,9 @@ const I18N = {
   ja: {
     appTitle: 'NCM Studio',
     convertError: '変換に失敗しました',
-    processingTitle: 'NCM から MP3 へ',
-    chooseDropTitle: 'NCM ファイルを選択またはドロップ',
-    chooseDropSubtitle: 'ファイルはローカルでのみ処理されます',
+    processingTitle: '音楽ファイルを MP3 へ',
+    chooseDropTitle: '音楽ファイルを選択またはドロップ',
+    chooseDropSubtitle: 'NCM、KGG、KGM、KGMA、VPR に対応。ファイルは端末内で処理されます',
     dropOverlayTitle: '離してインポート',
     dropOverlaySubtitle: '新しいファイルはキューに追加されます',
     queueSummary: ({ total, ready, converting }) =>
@@ -136,8 +147,13 @@ const I18N = {
     previewEmptyTitle: '変換済みの曲を選択',
     previewEmptySubtitle: '変換後ここで再生できます',
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
-    platformImportNote: '他の音楽プラットフォームでは、NetEase 公式のプレイリストインポートツールまたは CLI でプレイリストをすばやく作成できます。',
-    platformImportLinkAria: 'NetEase 公式プレイリストインポートツールと CLI のガイドを開く',
+    platformImportNote: 'NetEase NCM と KuGou KGG / KGM / KGMA / VPR に対応',
+    kugouKeyTitle: 'KuGou KGG キーデータベース',
+    kugouKeySummary: 'KGM、KGMA、VPR には不要です。KGG の場合は KGMusicV3.db または kgg.key を読み込みます。',
+    kugouKeyChoose: 'キーデータベースを読み込む',
+    kugouKeyLoading: 'キーデータベースを読み込み中',
+    kugouKeyReady: ({ name, count }) => `${name} · ${count} 件のキーを読み込みました`,
+    kugouKeyInputAria: 'KuGou KGMusicV3.db または kgg.key を選択',
     localCliTitle: 'CLI を入れて AI で処理',
     localCliSummary: 'このリンクをローカル AI に渡すと、ローカル NCM ファイルを直接処理できます。',
     localCliLinkLabel: 'インストールリンク',
@@ -186,7 +202,10 @@ function App() {
   const [zipProgress, setZipProgress] = useState(0)
   const [zipFeedback, setZipFeedback] = useState(null)
   const [cliCopyStatus, setCliCopyStatus] = useState('')
+  const [kugouKeyMap, setKugouKeyMap] = useState(null)
+  const [kugouKeyStatus, setKugouKeyStatus] = useState({ state: 'empty', name: '', error: '' })
   const fileInputRef = useRef(null)
+  const kugouKeyInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
   const tracksRef = useRef([])
   const audioRef = useRef(null)
@@ -284,6 +303,19 @@ function App() {
     cliCopyTimerRef.current = window.setTimeout(() => setCliCopyStatus(''), 2200)
   }
 
+  async function importKugouKeyFile(file) {
+    if (!file) return
+    setKugouKeyStatus({ state: 'loading', name: file.name, error: '' })
+    try {
+      const keyMap = await loadKugouKeyFile(file)
+      setKugouKeyMap(keyMap)
+      setKugouKeyStatus({ state: 'ready', name: file.name, count: keyMap.size, error: '' })
+    } catch (error) {
+      setKugouKeyMap(null)
+      setKugouKeyStatus({ state: 'error', name: file.name, error: error.message })
+    }
+  }
+
   async function convertTrack(track, options = {}) {
     setTracks((current) =>
       current.map((item) =>
@@ -304,7 +336,16 @@ function App() {
     }, 160)
 
     try {
-      const result = await convertNcmFile(track.file, { enrichTags: true })
+      const result = await convertMusicFile(track.file, {
+        keyMap: kugouKeyMap,
+        onProgress: (progress) => {
+          setTracks((current) => current.map((item) =>
+            item.id === track.id && item.status === 'converting'
+              ? { ...item, progress: Math.max(18, Math.min(99, progress)) }
+              : item,
+          ))
+        },
+      })
       clearInterval(pulse)
       const archiveCrc32 = calculateCrc32(result.audioBytes)
       const audioBlob = new Blob([result.audioBytes], { type: result.mime })
@@ -345,13 +386,13 @@ function App() {
   }
 
   function addFiles(fileList) {
-    const files = Array.from(fileList || []).filter((file) => /\.ncm$/i.test(file.name))
+    const files = Array.from(fileList || []).filter((file) => isSupportedMusicFile(file.name))
     if (!files.length) return
 
     const nextTracks = files.map((file) => ({
       id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
       file,
-      title: file.name.replace(/\.ncm$/i, ''),
+      title: file.name.replace(/\.(?:ncm|kgg|kgm|kgma|vpr)$/i, ''),
       artist: '',
       album: '',
       status: 'queued',
@@ -487,7 +528,7 @@ function App() {
             className="filePickerInput"
             type="file"
             multiple
-            accept=".ncm"
+            accept=".ncm,.kgg,.kgm,.kgma,.vpr"
             onChange={(event) => {
               addFiles(event.target.files)
               event.target.value = ''
@@ -499,7 +540,7 @@ function App() {
               <div className="queueHeader uploadHeader">
                 <div>
                   <h2>{messages.processingTitle}</h2>
-                  <PlatformImportNote messages={messages} />
+                  <SupportedFormatNote messages={messages} />
                 </div>
               </div>
 
@@ -526,7 +567,7 @@ function App() {
               <div className="queueHeader">
                 <div>
                   <h2>{messages.processingTitle}</h2>
-                  <PlatformImportNote messages={messages} />
+                  <SupportedFormatNote messages={messages} />
                   <p>
                     {messages.queueSummary({
                       total: tracks.length,
@@ -592,6 +633,49 @@ function App() {
         </section>
 
         <aside className="cliInstallPanel" data-enter>
+          <section className="kugouKeySection">
+            <input
+              ref={kugouKeyInputRef}
+              className="filePickerInput"
+              type="file"
+              accept=".db,.key,.txt"
+              aria-label={messages.kugouKeyInputAria}
+              onChange={(event) => {
+                importKugouKeyFile(event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+            <div className="cliInstallHeading">
+              <span className="cliInstallIcon kugouKeyIcon" aria-hidden="true">
+                <Database size={18} />
+              </span>
+              <h2>{messages.kugouKeyTitle}</h2>
+            </div>
+            <p>{messages.kugouKeySummary}</p>
+            <button
+              className="kugouKeyButton"
+              type="button"
+              disabled={kugouKeyStatus.state === 'loading'}
+              onClick={() => kugouKeyInputRef.current?.click()}
+            >
+              <Database size={15} />
+              <span>{kugouKeyStatus.state === 'loading' ? messages.kugouKeyLoading : messages.kugouKeyChoose}</span>
+            </button>
+            {kugouKeyStatus.state === 'ready' && (
+              <p className="kugouKeyState success" role="status">
+                <Check size={14} />
+                <span>{messages.kugouKeyReady(kugouKeyStatus)}</span>
+              </p>
+            )}
+            {kugouKeyStatus.state === 'error' && (
+              <p className="kugouKeyState error" role="alert">
+                <TriangleAlert size={14} />
+                <span>{kugouKeyStatus.error}</span>
+              </p>
+            )}
+          </section>
+
+          <div className="sidePanelDivider" />
           <div className="cliInstallHeading">
             <span className="cliInstallIcon" aria-hidden="true">
               <Terminal size={18} />
@@ -676,18 +760,10 @@ function App() {
   )
 }
 
-function PlatformImportNote({ messages }) {
+function SupportedFormatNote({ messages }) {
   return (
     <p className="platformImportNote">
-      <a
-        href={NETEASE_PLAYLIST_IMPORT_URL}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={messages.platformImportLinkAria}
-      >
-        <span>{messages.platformImportNote}</span>
-        <ExternalLink size={13} />
-      </a>
+      <span>{messages.platformImportNote}</span>
     </p>
   )
 }

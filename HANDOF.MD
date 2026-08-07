@@ -2,20 +2,21 @@
 
 ## 当前目标
 
-将页脚“提交反馈”替换为作者主页链接，并提交、推送、发布。
+发布酷狗 `.kgg/.kgm/.kgma/.vpr` 转 MP3 测试版。
 
 ## 进度
 
-- [x] 页脚文案改为“作者主页”。
-- [x] 链接改为 `https://mikeywa.icu`，新标签页打开。
-- [x] 补齐中、英、日三语文案和可访问名称。
-- [x] ESLint、自动测试和生产构建通过。
-- [x] 提交 `d066c83` 已推送到 GitHub `main`。
-- [x] Vercel 生产部署已就绪并绑定 `https://ncm.mikeywa.icu`。
-- [x] 正式域名返回 200，线上脚本已确认包含“作者主页”和 `https://mikeywa.icu`。
+- [x] 支持 KGM、KGMA、VPR 纯本地解码。
+- [x] 支持 KGG/KGM v5 导入 `KGMusicV3.db` 或 `kgg.key` 后解码。
+- [x] 解密结果统一转为真实 MP3，非 MP3 音频使用 320 kbps 编码。
+- [x] 加入真实 ekey、四种格式、响应式界面和浏览器端到端测试。
+- [x] 依赖安全审计为 0 个已知漏洞。
+- [x] Vercel 生产部署完成，正式域名返回 200，线上 KGG 转 MP3 端到端验证通过。
+- [ ] 提交、推送并合并到 GitHub。
 
 ## 说明
 
-- 正式域名：`https://ncm.mikeywa.icu`。
-- 作者主页：`https://mikeywa.icu`。
-- 生产部署：`ncm-studio-db0qqhqoc-yanghaoleng-icloudcoms-projects.vercel.app`。
+- 现有 NCM 网页与 CLI 行为保持不变；酷狗格式暂不加入 CLI。
+- KGG 必须命中用户本机密钥库中的歌曲哈希；提示用户先在酷狗客户端播放一次后重试。
+- QQ 音乐与汽水音乐仍处于调研阶段，不在本次发布范围。
+- 生产部署：`dpl_HS7CS9gYMZyPLmjoWZHyGZKWfA23`，正式域名：`https://ncm.mikeywa.icu`。

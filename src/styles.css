@@ -240,6 +240,87 @@ textarea:focus-visible {
   line-height: 1.6;
 }
 
+.kugouKeySection > p {
+  margin: 12px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.kugouKeyIcon {
+  color: #854d0e;
+  background: var(--yellow-soft);
+}
+
+:root[data-theme='dark'] .kugouKeyIcon {
+  color: #facc6b;
+}
+
+.kugouKeyButton {
+  width: 100%;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--primary), transparent 66%);
+  border-radius: 9px;
+  color: var(--primary);
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.kugouKeyButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary), transparent 45%);
+  background: color-mix(in srgb, var(--surface-2) 82%, var(--blue-soft));
+}
+
+.kugouKeyState {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 10px 0 0 !important;
+  padding: 8px 9px;
+  border-radius: 9px;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  overflow-wrap: anywhere;
+}
+
+.kugouKeyState svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.kugouKeyState.success {
+  color: #166534;
+  background: var(--green-soft);
+}
+
+.kugouKeyState.error {
+  color: #9f1239;
+  background: var(--rose-soft);
+}
+
+:root[data-theme='dark'] .kugouKeyState.success {
+  color: #8ce99a;
+}
+
+:root[data-theme='dark'] .kugouKeyState.error {
+  color: #ff9aae;
+}
+
+.sidePanelDivider {
+  height: 1px;
+  margin: 16px 0;
+  background: var(--faint);
+}
+
 .cliPackageLink {
   width: 100%;
   min-width: 0;
@@ -480,22 +561,6 @@ textarea:focus-visible {
   font-size: 12px;
   line-height: 1.55;
   text-align: left;
-}
-
-.platformImportNote a {
-  color: var(--primary);
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.platformImportNote a:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.platformImportNote svg {
-  margin-left: 4px;
-  vertical-align: -2px;
 }
 
 .queueHeader .platformImportNote + p {

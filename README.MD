@@ -1,6 +1,6 @@
 # NCM Studio
 
-NCM Studio 是一个浏览器和 CLI 均可使用的本地 `.ncm` 文件处理工具。它的目标很朴素：方便把自己已经拥有或有权使用的歌曲原文件整理出来，放到自己的离线设备里，比如游泳用的运动耳机、车载播放器、随身播放器等。
+NCM Studio 是一个本地音乐文件处理工具。网页支持网易云 `.ncm` 与酷狗 `.kgg/.kgm/.kgma/.vpr` 转 MP3；CLI 目前支持 `.ncm`。它的目标很朴素：方便把自己已经拥有或有权使用的歌曲原文件整理出来，放到自己的离线设备里，比如游泳用的运动耳机、车载播放器、随身播放器等。
 
 请勿将本项目用于侵犯版权、规避付费、批量搬运、传播未授权音乐或其他违法用途。
 
@@ -15,15 +15,16 @@ NCM Studio 是一个浏览器和 CLI 均可使用的本地 `.ncm` 文件处理�
 
 ## 适合的使用场景
 
-- 你已经有一批本地 `.ncm` 文件，希望在浏览器里转成可播放的音频文件。
+- 你已经有一批本地 `.ncm/.kgg/.kgm/.kgma/.vpr` 文件，希望在浏览器里转成 MP3。
 - 你想把自己有权使用的音乐文件拷贝到离线设备里，例如游泳运动耳机。
 - 你希望文件处理尽量在本地浏览器完成，不把本地音乐文件上传到应用服务器。
 - 其他音乐平台推荐使用[网易官方歌单导入工具或 CLI](https://music.163.com/st/ncmcli#setup)快速创建歌单。
 
 ## 功能
 
-- 拖入或选择本地 `.ncm` 文件。
-- 在浏览器本地解析和转换 `.ncm` 文件。
+- 拖入或选择本地 `.ncm/.kgg/.kgm/.kgma/.vpr` 文件。
+- 在浏览器本地完成文件解析、酷狗解密和 MP3 转码。
+- KGM、KGMA、VPR 可直接转换；KGG 需先导入本机 `KGMusicV3.db` 或 `kgg.key`。
 - 尽可能读取元数据和内嵌封面。
 - 为 MP3 写入 ID3 标题、歌手、专辑和 `APIC` 封面信息。
 - 单首下载或把已完成的本地转换结果打包成 ZIP。
@@ -77,11 +78,11 @@ ncm-studio convert ./input --output ./output --json --no-network
 
 stdout 只输出一个 JSON 对象，其中包含 `ok`、`total`、`succeeded`、`failed`、`files` 和 `errors`。全部成功时退出码为 `0`；参数、输入或部分转换失败时为 `1`。
 
-CLI 不需要 API 密钥，也不会上传音频文件。默认可能会根据 NCM 元数据请求缺失的封面；自动化环境可使用 `--no-network` 禁用该请求。
+CLI 不需要 API 密钥，也不会上传音频文件。默认可能会根据 NCM 元数据请求缺失的封面；自动化环境可使用 `--no-network` 禁用该请求。酷狗格式当前仅在网页端支持。
 
 ## 隐私与本地处理
 
-- 本地 `.ncm` 文件只在浏览器里处理，不会上传到应用服务器。
+- 本地音乐文件与导入的酷狗密钥库只在浏览器内存中处理，不会上传到应用服务器。
 - 应用不需要 AI 密钥，也不会把歌单、元数据或音频发送给应用服务器。
 
 ## 大批量 ZIP 打包
@@ -133,7 +134,7 @@ npm run build
 npm test
 ```
 
-自动测试会验证 CLI 帮助、版本和 JSON 错误契约，也会验证 MP3 的 ID3 `APIC` 封面帧，并确认 ZIP 条目保留同一份带封面的音频数据。
+自动测试会验证 CLI 契约、KGG/KGM/KGMA/VPR 解码、真实 ekey 密钥派生、MP3 标签和 ZIP 数据一致性。
 
 ## API
 
@@ -142,12 +143,21 @@ npm test
 ## 关键技术架构
 
 - React + Vite 负责单页应用和响应式界面。
-- `.ncm` 解析、音频转换、ID3 写入和 ZIP 打包均在浏览器本地完成。
+- `.ncm` 与酷狗格式解析、音频转换、ID3 写入和 ZIP 打包均在浏览器本地完成。
+- KGG 使用用户导入的 `KGMusicV3.db`/`kgg.key`，KGM/KGMA/VPR 使用按需加载的 WASM 解码器。
+- 解密结果若不是 MP3，会通过 Web Audio 解码并以 320 kbps 编码为 MP3。
 - Node.js CLI 复用 `src/lib/ncm.js` 转换核心，不维护第二套解析逻辑。
 - CLI 将进度写入 stderr，`--json` 结果写入 stdout，方便 Agent 稳定解析。
 - `browser-id3-writer` 负责写入 MP3 ID3v2.3 文本标签与 `APIC` 封面帧。
 - `src/lib/zip.js` 封装 CRC32、ZIP `STORE` 结构、Blob 组合、进度、重名保护和停滞检测。
 - FileSaver 触发浏览器下载。
+
+## 多平台扩展状态
+
+- 酷狗：网页已支持 KGG/KGM/KGMA/VPR；KGG/KGM v5 需用户本地的 `KGMusicV3.db` 或 `kgg.key`。
+- QQ 音乐：QMCv1 和携带密钥的 QMCv2 可本地解码；新版 `musicex` 文件需要已登录 QQ 音乐的凭据获取 ekey。
+- 汽水音乐：加密 MP4/M4A 需要与歌曲对应的 `spade_a`/AES 密钥；仅有本地加密文件时通常无法独立处理。
+- 当前架构是“格式识别 → 平台解码适配器 → 真实音频编码识别 → 必要时转 MP3 → 元数据与封面写入”。解码产物可能是 MP3、FLAC、OGG 或 M4A，不能只修改后缀。
 
 ## 部署
 
@@ -169,6 +179,9 @@ npm test
 - 网易官方歌单导入工具与 CLI：https://music.163.com/st/ncmcli#setup
 - ncmdump：https://github.com/taurusxin/ncmdump
 - browser-id3-writer：https://github.com/egoroof/browser-id3-writer
+- Project Unlock Music crypto：https://github.com/showhwa/UnlockMusicProject_Archive/tree/main/tmp/lib_um_crypto_rust
+- KgmWasm：https://github.com/xhacker-zzz/KgmWasm
+- 第三方许可：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 ## 致谢
 

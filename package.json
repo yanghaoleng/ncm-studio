@@ -1,6 +1,6 @@
 {
   "name": "ncm-studio-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Convert local NCM files to playable audio from the command line.",
   "type": "module",
   "bin": {
@@ -42,12 +42,15 @@
     "preview": "vite preview --host 0.0.0.0",
     "cli": "node ./bin/ncm-studio.mjs",
     "lint": "eslint .",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=1",
     "prepublishOnly": "npm test && npm run lint && npm run build"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "@xhacker/kgmwasm": "^1.0.0",
     "browser-id3-writer": "^6.0.0",
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "sql.js": "^1.14.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -57,12 +60,15 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "file-saver": "^2.0.5",
-    "gsap": "^3.14.2",
     "globals": "^16.5.0",
+    "gsap": "^3.14.2",
     "lucide-react": "^0.556.0",
     "playwright": "^1.60.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "vite": "^7.2.7"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }
