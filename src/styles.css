@@ -933,16 +933,6 @@ textarea:focus-visible {
   gap: 4px;
 }
 
-.formatCell span {
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 8px;
-  color: #083a8e;
-  background: var(--blue-soft);
-  font-size: 12px;
-  font-weight: 850;
-}
-
 .progressCell > div {
   height: 7px;
   overflow: hidden;

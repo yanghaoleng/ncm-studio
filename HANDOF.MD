@@ -40,10 +40,12 @@
 - [x] “网站使用说明”入口去掉下划线，弹窗内中英日语言切换改为原地更新、不跳转页面。
 - [x] 打赏栏目展开时自动收起 CLI，CLI 详情正文字号统一为 15px。
 - [x] 本轮交互细节已生产部署并线上验收：`dpl_9Nd64Wx7h4BsbBLdH5pxhzTKBGBF`；正式域名返回 200，弹窗原地切换和右栏折叠联动正常。
+- [x] 队列移除“全部转换”按钮，“继续选择”改为“继续添加”，文件行移除 MP3 格式标签并保留体积。
+- [x] 最新队列精简版本已生产部署并线上验收：`dpl_7hU1UQhrX35Cj12JEXMSjMhNrJ8F`。
 
 ## 说明
 
 - 现有 NCM 网页与 CLI 行为保持不变；酷狗格式暂不加入 CLI。
 - 网页不再开放依赖本机密钥库的 KGG 转换。
 - QQ 音乐与汽水音乐仍处于调研阶段，不在本次发布范围。
-- 最新生产部署：`dpl_9Nd64Wx7h4BsbBLdH5pxhzTKBGBF`，正式域名：`https://ncm.mikeywa.icu`。
+- 最新生产部署：`dpl_7hU1UQhrX35Cj12JEXMSjMhNrJ8F`，正式域名：`https://ncm.mikeywa.icu`。

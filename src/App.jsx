@@ -15,7 +15,6 @@ import {
   Moon,
   Music2,
   RefreshCw,
-  Sparkles,
   Sun,
   Terminal,
   ThumbsUp,
@@ -50,8 +49,7 @@ const I18N = {
     dropOverlaySubtitle: '新文件会自动加入处理队列',
     queueSummary: ({ total, ready, converting }) =>
       `${total} 个文件 · ${ready} 个完成 · ${converting} 个转换中`,
-    chooseMore: '继续选择',
-    convertAll: '全部转换',
+    chooseMore: '继续添加',
     downloadZip: '打包下载',
     zipping: '打包中',
     zipStalled: '打包进度暂时没有变化。请再等一会；若持续卡住，请刷新后重试，或减少文件数量后分批打包。',
@@ -114,8 +112,7 @@ const I18N = {
     dropOverlaySubtitle: 'New files will join the queue',
     queueSummary: ({ total, ready, converting }) =>
       `${total} files · ${ready} done · ${converting} converting`,
-    chooseMore: 'Choose more',
-    convertAll: 'Convert all',
+    chooseMore: 'Add more',
     downloadZip: 'Download ZIP',
     zipping: 'Zipping',
     zipStalled: 'ZIP progress has paused. Please wait a little longer; if it remains stuck, refresh and retry or package fewer files at a time.',
@@ -178,8 +175,7 @@ const I18N = {
     dropOverlaySubtitle: '新しいファイルはキューに追加されます',
     queueSummary: ({ total, ready, converting }) =>
       `${total} ファイル · ${ready} 件完了 · ${converting} 件変換中`,
-    chooseMore: '追加選択',
-    convertAll: 'すべて変換',
+    chooseMore: 'さらに追加',
     downloadZip: 'ZIP ダウンロード',
     zipping: '圧縮中',
     zipStalled: 'ZIP の進捗が一時停止しています。しばらく待ち、改善しない場合は再読み込み後に再試行するか、ファイル数を減らして分割してください。',
@@ -574,12 +570,6 @@ function App() {
     }
   }
 
-  function convertAll() {
-    tracks
-      .filter((track) => ['queued', 'error'].includes(track.status))
-      .forEach((track, index) => setTimeout(() => convertTrack(track, { select: index === 0 }), index * 260))
-  }
-
   const readyCount = tracks.filter((track) => track.status === 'ready').length
   const convertingCount = tracks.filter((track) => track.status === 'converting').length
 
@@ -693,10 +683,6 @@ function App() {
                   <button className="secondaryButton" type="button" onClick={() => fileInputRef.current?.click()}>
                     <UploadCloud size={17} />
                     {messages.chooseMore}
-                  </button>
-                  <button className="secondaryButton" type="button" onClick={convertAll} disabled={!tracks.some((track) => ['queued', 'error'].includes(track.status))}>
-                    <RefreshCw size={17} />
-                    {messages.convertAll}
                   </button>
                   <button
                     className={`primaryButton zipButton ${isZipping ? 'isZipping' : ''}`}
@@ -960,10 +946,6 @@ function App() {
             <strong>{readyCount}</strong>
             <span>{messages.readyDownloadSuffix}</span>
           </div>
-          <button type="button" onClick={convertAll} disabled={!tracks.some((track) => ['queued', 'error'].includes(track.status))}>
-            <Sparkles size={17} />
-            {messages.convertAll}
-          </button>
           <button
             className={`zipButton ${isZipping ? 'isZipping' : ''}`}
             type="button"
@@ -1031,7 +1013,6 @@ function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onR
         {track.status === 'error' && <em>{track.error}</em>}
       </div>
       <div className="formatCell">
-        <span>{track.extension?.toUpperCase() || 'MP3'}</span>
         <small>{formatBytes(track.size || track.sourceSize)}</small>
       </div>
       <div className="progressCell">

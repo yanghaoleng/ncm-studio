@@ -7,6 +7,8 @@
 | 标题与拖入区间距 | 空状态标题和虚线拖入区之间 | `.uploadEmpty`, `.queueHeader.uploadHeader` | `gap`, `margin-bottom` |
 | 支持格式提示 | 标题下方的格式说明 | `.platformImportNote`, `SupportedFormatNote` | `platformImportNote` |
 | 文件列表 | NCM 处理队列 | `.queueTable`, `TrackRow` | `tracks` |
+| 继续添加 | 队列顶部追加文件按钮 | `.queueControls .secondaryButton` | `chooseMore`, `fileInputRef` |
+| 文件体积 | 文件行中原格式标签位置保留的体积文字 | `.formatCell small` | `formatBytes` |
 | 下载文件封面 | MP3 内嵌 ID3 前封面 | 无可视组件 | `attachMp3Tags`, `APIC`, `coverBytes` |
 | 打包按钮 | 桌面端 ZIP 主按钮 | `.primaryButton.zipButton` | `downloadZip`, `isZipping`, `zipProgress` |
 | 底部 ZIP | 移动端 ZIP 按钮 | `.bottomBar .zipButton` | `downloadZip`, `zipProgress` |
@@ -25,7 +27,7 @@
 | 作者主页 | 页脚左侧使用说明旁的站点外链 | `.siteFooter .footerTextLink` | `AUTHOR_HOME_URL`, `authorLinkLabel` |
 | 平台格式识别 | NCM/酷狗输入路由 | 无可视组件 | `isSupportedMusicFile`, `convertMusicFile`, `detectAudioCodec` |
 | 酷狗解码器 | 网页开放 KGM/KGMA/VPR 解码 | `src/lib/kugou.js` | `convertKugouFile`, `decryptLegacyKgm` |
-| MP3转码器 | 解密音频统一输出为 MP3 | `src/lib/audio.js` | `transcodeToMp3`, `detectAudioCodec` |
+| MP3转码器 | 解密音频统一输出为 MP3，不在文件行重复显示标签 | `src/lib/audio.js`, `.formatCell` | `transcodeToMp3`, `detectAudioCodec` |
 | SEO 标题 | 搜索结果主标题 | `index.html` 的 `<title>` | 待真实查询词确定 |
 | SEO 描述 | 搜索结果摘要候选 | `index.html` 的 `meta[name="description"]` | 待真实查询词确定 |
 | SEO 内容区 | 工具下方的可索引说明与问答 | 待新增 | 待真实查询词确定 |
