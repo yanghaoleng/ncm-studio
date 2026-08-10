@@ -4,31 +4,34 @@ import gsap from 'gsap'
 import {
   Archive,
   Check,
+  ChevronDown,
+  CircleAlert,
   Copy,
-  Database,
   Download,
   ExternalLink,
   FileMusic,
   Languages,
+  MessageCircle,
   Moon,
   Music2,
   RefreshCw,
   Sparkles,
   Sun,
   Terminal,
+  ThumbsUp,
   Trash2,
   TriangleAlert,
   UploadCloud,
+  WalletCards,
   X,
 } from 'lucide-react'
 import { convertMusicFile, isSupportedMusicFile } from './lib/convert.js'
-import { loadKugouKeyFile } from './lib/kugou.js'
 import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 
-const GITHUB_REPOSITORY_URL = 'https://github.com/yanghaoleng/ncm-studio'
 const AUTHOR_HOME_URL = 'https://mikeywa.icu'
 const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
+const WECHAT_ID = 'yanghaoleng'
 
 const LANGUAGE_OPTIONS = [
   { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
@@ -42,7 +45,7 @@ const I18N = {
     convertError: '转换失败',
     processingTitle: '音乐文件转MP3',
     chooseDropTitle: '选择或拖入音乐文件',
-    chooseDropSubtitle: '支持 NCM、KGG、KGM、KGMA、VPR，文件只在本地处理',
+    chooseDropSubtitle: '支持 NCM、KGM、KGMA、VPR，文件只在本地处理',
     dropOverlayTitle: '松手继续导入',
     dropOverlaySubtitle: '新文件会自动加入处理队列',
     queueSummary: ({ total, ready, converting }) =>
@@ -61,19 +64,40 @@ const I18N = {
     previewEmptyTitle: '选择一首已完成的歌曲',
     previewEmptySubtitle: '完成转换后可在线播放',
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
-    platformImportNote: '支持网易云 NCM 与酷狗 KGG / KGM / KGMA / VPR',
-    kugouKeyTitle: '酷狗 KGG 密钥库',
-    kugouKeySummary: 'KGM、KGMA、VPR 无需密钥库。KGG 请导入本机 KGMusicV3.db 或 kgg.key。',
-    kugouKeyChoose: '导入密钥库',
-    kugouKeyLoading: '正在读取密钥库',
-    kugouKeyReady: ({ name, count }) => `${name} · ${count} 条密钥已就绪`,
-    kugouKeyInputAria: '选择酷狗 KGMusicV3.db 或 kgg.key 密钥文件',
+    platformImportNote: '支持网易云 NCM 与酷狗 KGM / KGMA / VPR',
     localCliTitle: '安装CLI让AI帮你处理',
-    localCliSummary: '复制链接给到本地的AI，可以直接处理本地ncm文件',
+    localCliSummary: '让能访问本地目录的 AI 助手直接批量处理 NCM 文件。',
+    localCliScenarioTitle: '适用场景',
+    localCliScenarioText: '适合一次转换大批量文件，或需要频繁转换指定目录的用户。',
+    localCliUsageTitle: '使用方法',
+    localCliUsageText: '把安装链接交给有本地文件和命令权限的豆包、MiniMax、WorkBuddy 等电脑端 AI，先让它安装 CLI，再告诉它需要转换的目录。',
+    localCliPrompt: '示例：请安装 ncm-studio-cli，然后把“音乐目录”中的 NCM 文件转换到“输出目录”。',
+    localCliExpand: '展开 CLI 使用说明',
+    localCliCollapse: '收起 CLI 使用说明',
     localCliLinkLabel: '安装链接',
     localCliLinkAria: '复制 ncm-studio-cli 的 npm 安装链接',
     cliLinkCopied: '复制成功',
     cliLinkCopyFailed: '复制失败',
+    donateTitle: '打赏作者',
+    donateDescription: '这个工具会一直免费。\n如果它帮你省了时间，可以请我喝杯咖啡，支持后续维护，我会开心一整天！\u00A0🥰\n也可以给我提要求，我会努力实现！',
+    donateSectionExpand: '展开打赏作者',
+    donateSectionCollapse: '收起打赏作者',
+    donateAlipay: '支付宝',
+    donateWechat: '微信',
+    donateQrAlt: (method) => `${method}收款二维码`,
+    copyWechat: '复制微信号',
+    wechatCopied: '已复制微信号',
+    wechatCopyFailed: '复制失败，请重试',
+    usageGuideLabel: '网站使用说明',
+    usageGuideClose: '关闭网站使用说明',
+    seoHeading: '把已有音乐整理到离线设备',
+    seoIntro: 'NCM Studio 在浏览器本地把您有权使用的网易云 NCM 与酷狗音乐文件转换为 MP3，适合游泳骨传导耳机、运动耳机、车载播放器和随身播放器。',
+    seoConvertTitle: 'NCM / KGM 转 MP3',
+    seoConvertText: '支持 NCM、KGM、KGMA、VPR，转换、试听与 ZIP 打包均在浏览器内完成。',
+    seoHeadphoneTitle: '游泳骨传导耳机音乐',
+    seoHeadphoneText: '可将已购买、已获授权或您有合法使用权的本地音乐整理为 MP3，再导入耳机的离线存储。',
+    seoPrivacyTitle: '文件不上传服务器',
+    seoPrivacyText: '音频只在当前设备内存中处理，不作为在线音乐资源提供或分发。',
     githubLinkLabel: 'GitHub 仓库',
     authorLinkLabel: '作者主页',
     authorLinkAria: '打开作者主页',
@@ -85,7 +109,7 @@ const I18N = {
     convertError: 'Conversion failed',
     processingTitle: 'Music files to MP3',
     chooseDropTitle: 'Choose or drop music files',
-    chooseDropSubtitle: 'Supports NCM, KGG, KGM, KGMA and VPR. Files stay on this device.',
+    chooseDropSubtitle: 'Supports NCM, KGM, KGMA and VPR. Files stay on this device.',
     dropOverlayTitle: 'Release to import',
     dropOverlaySubtitle: 'New files will join the queue',
     queueSummary: ({ total, ready, converting }) =>
@@ -104,19 +128,40 @@ const I18N = {
     previewEmptyTitle: 'Select a converted song',
     previewEmptySubtitle: 'Converted tracks can play here',
     audioLabel: 'Track preview player, press Space to play or pause',
-    platformImportNote: 'Supports NetEase NCM and KuGou KGG / KGM / KGMA / VPR',
-    kugouKeyTitle: 'KuGou KGG key database',
-    kugouKeySummary: 'KGM, KGMA and VPR need no database. For KGG, import KGMusicV3.db or kgg.key from this device.',
-    kugouKeyChoose: 'Import key database',
-    kugouKeyLoading: 'Reading key database',
-    kugouKeyReady: ({ name, count }) => `${name} · ${count} keys ready`,
-    kugouKeyInputAria: 'Choose a KuGou KGMusicV3.db or kgg.key file',
-    localCliTitle: 'Install CLI for AI processing',
-    localCliSummary: 'Copy this link to a local AI so it can process local NCM files directly.',
+    platformImportNote: 'Supports NetEase NCM and KuGou KGM / KGMA / VPR',
+    localCliTitle: 'Install CLI for an AI agent',
+    localCliSummary: 'Let an AI assistant with local-folder access process NCM files in batches.',
+    localCliScenarioTitle: 'Best for',
+    localCliScenarioText: 'Useful for large batches or recurring conversions of a chosen folder.',
+    localCliUsageTitle: 'How to use it',
+    localCliUsageText: 'Give the install link to a desktop AI with file and command access, such as Doubao, MiniMax, or WorkBuddy. Ask it to install the CLI, then provide the folder to convert.',
+    localCliPrompt: 'Example: Install ncm-studio-cli, then convert the NCM files in “Music Folder” into “Output Folder”.',
+    localCliExpand: 'Expand CLI instructions',
+    localCliCollapse: 'Collapse CLI instructions',
     localCliLinkLabel: 'Install link',
     localCliLinkAria: 'Copy the ncm-studio-cli npm package link',
     cliLinkCopied: 'Copied',
     cliLinkCopyFailed: 'Copy failed',
+    donateTitle: 'Support the author',
+    donateDescription: 'This tool will always be free.\nIf it saved you time, you can buy me a coffee and support future maintenance. It would make my day!\u00A0🥰\nYou can also send me feature requests, and I will do my best to build them!',
+    donateSectionExpand: 'Expand author support',
+    donateSectionCollapse: 'Collapse author support',
+    donateAlipay: 'Alipay',
+    donateWechat: 'WeChat Pay',
+    donateQrAlt: (method) => `${method} payment QR code`,
+    copyWechat: 'Copy WeChat ID',
+    wechatCopied: 'WeChat ID copied',
+    wechatCopyFailed: 'Copy failed. Please try again.',
+    usageGuideLabel: 'Website guide',
+    usageGuideClose: 'Close website guide',
+    seoHeading: 'Prepare your own music for offline devices',
+    seoIntro: 'NCM Studio converts legally obtained NetEase NCM and KuGou music files to MP3 locally in your browser for swimming headphones, bone-conduction sports headphones, car stereos, and portable players.',
+    seoConvertTitle: 'NCM and KGM to MP3',
+    seoConvertText: 'Convert, preview, and package NCM, KGM, KGMA, and VPR files without uploading your audio.',
+    seoHeadphoneTitle: 'Music for swimming headphones',
+    seoHeadphoneText: 'Prepare files you have purchased, downloaded with permission, or otherwise have the right to use before copying them to offline headphone storage.',
+    seoPrivacyTitle: 'Private local processing',
+    seoPrivacyText: 'Audio stays in this device’s memory. NCM Studio does not provide or distribute music.',
     githubLinkLabel: 'GitHub repository',
     authorLinkLabel: 'Author',
     authorLinkAria: 'Open the author homepage',
@@ -128,7 +173,7 @@ const I18N = {
     convertError: '変換に失敗しました',
     processingTitle: '音楽ファイルを MP3 へ',
     chooseDropTitle: '音楽ファイルを選択またはドロップ',
-    chooseDropSubtitle: 'NCM、KGG、KGM、KGMA、VPR に対応。ファイルは端末内で処理されます',
+    chooseDropSubtitle: 'NCM、KGM、KGMA、VPR に対応。ファイルは端末内で処理されます',
     dropOverlayTitle: '離してインポート',
     dropOverlaySubtitle: '新しいファイルはキューに追加されます',
     queueSummary: ({ total, ready, converting }) =>
@@ -147,19 +192,40 @@ const I18N = {
     previewEmptyTitle: '変換済みの曲を選択',
     previewEmptySubtitle: '変換後ここで再生できます',
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
-    platformImportNote: 'NetEase NCM と KuGou KGG / KGM / KGMA / VPR に対応',
-    kugouKeyTitle: 'KuGou KGG キーデータベース',
-    kugouKeySummary: 'KGM、KGMA、VPR には不要です。KGG の場合は KGMusicV3.db または kgg.key を読み込みます。',
-    kugouKeyChoose: 'キーデータベースを読み込む',
-    kugouKeyLoading: 'キーデータベースを読み込み中',
-    kugouKeyReady: ({ name, count }) => `${name} · ${count} 件のキーを読み込みました`,
-    kugouKeyInputAria: 'KuGou KGMusicV3.db または kgg.key を選択',
+    platformImportNote: 'NetEase NCM と KuGou KGM / KGMA / VPR に対応',
     localCliTitle: 'CLI を入れて AI で処理',
-    localCliSummary: 'このリンクをローカル AI に渡すと、ローカル NCM ファイルを直接処理できます。',
+    localCliSummary: 'ローカルフォルダへアクセスできる AI で NCM ファイルを一括処理できます。',
+    localCliScenarioTitle: '適した場面',
+    localCliScenarioText: '大量のファイルを一度に変換する場合や、指定フォルダを繰り返し変換する場合に適しています。',
+    localCliUsageTitle: '使い方',
+    localCliUsageText: 'ファイルとコマンドへアクセスできる Doubao、MiniMax、WorkBuddy などのデスクトップ AI にインストールリンクを渡し、CLI のインストール後に変換するフォルダを指定します。',
+    localCliPrompt: '例：ncm-studio-cli をインストールし、「音楽フォルダ」の NCM を「出力フォルダ」へ変換してください。',
+    localCliExpand: 'CLI の使い方を開く',
+    localCliCollapse: 'CLI の使い方を閉じる',
     localCliLinkLabel: 'インストールリンク',
     localCliLinkAria: 'ncm-studio-cli の npm インストールリンクをコピー',
     cliLinkCopied: 'コピー完了',
     cliLinkCopyFailed: 'コピー失敗',
+    donateTitle: '作者を応援',
+    donateDescription: 'このツールはずっと無料です。\n時間の節約になったら、コーヒー一杯分で今後のメンテナンスを応援してください。一日中うれしい気持ちになります！\u00A0🥰\n機能のリクエストも歓迎です。できる限り実現します！',
+    donateSectionExpand: '作者の応援を開く',
+    donateSectionCollapse: '作者の応援を閉じる',
+    donateAlipay: 'Alipay',
+    donateWechat: 'WeChat Pay',
+    donateQrAlt: (method) => `${method} 支払い QR コード`,
+    copyWechat: 'WeChat ID をコピー',
+    wechatCopied: 'WeChat ID をコピーしました',
+    wechatCopyFailed: 'コピーに失敗しました。もう一度お試しください。',
+    usageGuideLabel: 'サイトの使い方',
+    usageGuideClose: 'サイトの使い方を閉じる',
+    seoHeading: '手持ちの音楽をオフライン機器へ',
+    seoIntro: 'NCM Studio は、正当に利用できる NetEase NCM と KuGou の音楽ファイルをブラウザ内で MP3 に変換し、水泳用骨伝導イヤホン、スポーツイヤホン、カーオーディオなどへ整理できます。',
+    seoConvertTitle: 'NCM・KGM を MP3 に変換',
+    seoConvertText: 'NCM、KGM、KGMA、VPR の変換、試聴、ZIP 保存をブラウザ内で完結できます。',
+    seoHeadphoneTitle: '水泳用骨伝導イヤホンの音楽',
+    seoHeadphoneText: '購入済み、許可を得てダウンロード済み、または正当な利用権を持つ音楽を MP3 にしてオフラインストレージへコピーできます。',
+    seoPrivacyTitle: 'ファイルをアップロードしない',
+    seoPrivacyText: '音声は端末のメモリ内だけで処理され、音楽の提供や配布は行いません。',
     githubLinkLabel: 'GitHub リポジトリ',
     authorLinkLabel: '作者ページ',
     authorLinkAria: '作者ホームページを開く',
@@ -192,9 +258,15 @@ function useGsapIntro(deps = []) {
   return scope
 }
 
+function getInitialLanguage() {
+  if (typeof window === 'undefined') return 'zh'
+  const requestedLanguage = new URLSearchParams(window.location.search).get('lang')
+  return LANGUAGE_OPTIONS.some((option) => option.id === requestedLanguage) ? requestedLanguage : 'zh'
+}
+
 function App() {
   const [theme, setTheme] = useState('dark')
-  const [language, setLanguage] = useState('zh')
+  const [language, setLanguage] = useState(getInitialLanguage)
   const [tracks, setTracks] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -202,11 +274,16 @@ function App() {
   const [zipProgress, setZipProgress] = useState(0)
   const [zipFeedback, setZipFeedback] = useState(null)
   const [cliCopyStatus, setCliCopyStatus] = useState('')
-  const [kugouKeyMap, setKugouKeyMap] = useState(null)
-  const [kugouKeyStatus, setKugouKeyStatus] = useState({ state: 'empty', name: '', error: '' })
+  const [cliSectionExpanded, setCliSectionExpanded] = useState(false)
+  const [donateSectionExpanded, setDonateSectionExpanded] = useState(false)
+  const [donateMethod, setDonateMethod] = useState('wechat')
+  const [wechatCopyStatus, setWechatCopyStatus] = useState('')
+  const [usageGuideOpen, setUsageGuideOpen] = useState(false)
   const fileInputRef = useRef(null)
-  const kugouKeyInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
+  const wechatCopyTimerRef = useRef(null)
+  const usageGuideTriggerRef = useRef(null)
+  const usageGuideCloseRef = useRef(null)
   const tracksRef = useRef([])
   const audioRef = useRef(null)
   const rootRef = useGsapIntro([])
@@ -233,8 +310,32 @@ function App() {
   }, [currentLanguageOption.htmlLang])
 
   useEffect(() => {
+    if (donateSectionExpanded) setCliSectionExpanded(false)
+  }, [donateSectionExpanded])
+
+  useEffect(() => {
     tracksRef.current = tracks
   }, [tracks])
+
+  useEffect(() => {
+    if (!usageGuideOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.requestAnimationFrame(() => usageGuideCloseRef.current?.focus())
+
+    function closeOnEscape(event) {
+      if (event.key !== 'Escape') return
+      setUsageGuideOpen(false)
+      window.requestAnimationFrame(() => usageGuideTriggerRef.current?.focus())
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [usageGuideOpen])
 
   useEffect(() => {
     function handlePlayerShortcut(event) {
@@ -272,6 +373,7 @@ function App() {
   useEffect(() => {
     return () => {
       if (cliCopyTimerRef.current) window.clearTimeout(cliCopyTimerRef.current)
+      if (wechatCopyTimerRef.current) window.clearTimeout(wechatCopyTimerRef.current)
       tracksRef.current.forEach((track) => {
         if (track.audioUrl) URL.revokeObjectURL(track.audioUrl)
         if (track.coverUrl) URL.revokeObjectURL(track.coverUrl)
@@ -303,17 +405,28 @@ function App() {
     cliCopyTimerRef.current = window.setTimeout(() => setCliCopyStatus(''), 2200)
   }
 
-  async function importKugouKeyFile(file) {
-    if (!file) return
-    setKugouKeyStatus({ state: 'loading', name: file.name, error: '' })
+  async function copyWechatId() {
     try {
-      const keyMap = await loadKugouKeyFile(file)
-      setKugouKeyMap(keyMap)
-      setKugouKeyStatus({ state: 'ready', name: file.name, count: keyMap.size, error: '' })
-    } catch (error) {
-      setKugouKeyMap(null)
-      setKugouKeyStatus({ state: 'error', name: file.name, error: error.message })
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(WECHAT_ID)
+      } else {
+        const textArea = document.createElement('textarea')
+        textArea.value = WECHAT_ID
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.select()
+        const copied = document.execCommand('copy')
+        textArea.remove()
+        if (!copied) throw new Error('Clipboard unavailable')
+      }
+      setWechatCopyStatus('success')
+    } catch {
+      setWechatCopyStatus('error')
     }
+
+    if (wechatCopyTimerRef.current) window.clearTimeout(wechatCopyTimerRef.current)
+    wechatCopyTimerRef.current = window.setTimeout(() => setWechatCopyStatus(''), 2400)
   }
 
   async function convertTrack(track, options = {}) {
@@ -337,7 +450,6 @@ function App() {
 
     try {
       const result = await convertMusicFile(track.file, {
-        keyMap: kugouKeyMap,
         onProgress: (progress) => {
           setTracks((current) => current.map((item) =>
             item.id === track.id && item.status === 'converting'
@@ -392,7 +504,7 @@ function App() {
     const nextTracks = files.map((file) => ({
       id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
       file,
-      title: file.name.replace(/\.(?:ncm|kgg|kgm|kgma|vpr)$/i, ''),
+      title: file.name.replace(/\.(?:ncm|kgm|kgma|vpr)$/i, ''),
       artist: '',
       album: '',
       status: 'queued',
@@ -453,6 +565,7 @@ function App() {
         },
       })
       saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
+      setDonateSectionExpanded(true)
     } catch (error) {
       console.error('Failed to build ZIP archive', error)
       setZipFeedback({ type: 'error', message: messages.zipFailed })
@@ -528,7 +641,7 @@ function App() {
             className="filePickerInput"
             type="file"
             multiple
-            accept=".ncm,.kgg,.kgm,.kgma,.vpr"
+            accept=".ncm,.kgm,.kgma,.vpr"
             onChange={(event) => {
               addFiles(event.target.files)
               event.target.value = ''
@@ -633,88 +746,133 @@ function App() {
         </section>
 
         <aside className="cliInstallPanel" data-enter>
-          <section className="kugouKeySection">
-            <input
-              ref={kugouKeyInputRef}
-              className="filePickerInput"
-              type="file"
-              accept=".db,.key,.txt"
-              aria-label={messages.kugouKeyInputAria}
-              onChange={(event) => {
-                importKugouKeyFile(event.target.files?.[0])
-                event.target.value = ''
-              }}
-            />
-            <div className="cliInstallHeading">
-              <span className="cliInstallIcon kugouKeyIcon" aria-hidden="true">
-                <Database size={18} />
-              </span>
-              <h2>{messages.kugouKeyTitle}</h2>
-            </div>
-            <p>{messages.kugouKeySummary}</p>
+          <section className="cliSection">
             <button
-              className="kugouKeyButton"
+              className="cliSectionToggle"
               type="button"
-              disabled={kugouKeyStatus.state === 'loading'}
-              onClick={() => kugouKeyInputRef.current?.click()}
+              aria-expanded={cliSectionExpanded}
+              aria-controls="cli-section-body"
+              aria-label={cliSectionExpanded ? messages.localCliCollapse : messages.localCliExpand}
+              onClick={() => setCliSectionExpanded((current) => !current)}
             >
-              <Database size={15} />
-              <span>{kugouKeyStatus.state === 'loading' ? messages.kugouKeyLoading : messages.kugouKeyChoose}</span>
+              <span className="cliInstallHeading">
+                <span className="cliInstallIcon" aria-hidden="true">
+                  <Terminal size={18} />
+                </span>
+                <span className="cliSectionTitle">{messages.localCliTitle}</span>
+              </span>
+              <ChevronDown className="cliChevron" size={17} aria-hidden="true" />
             </button>
-            {kugouKeyStatus.state === 'ready' && (
-              <p className="kugouKeyState success" role="status">
-                <Check size={14} />
-                <span>{messages.kugouKeyReady(kugouKeyStatus)}</span>
-              </p>
-            )}
-            {kugouKeyStatus.state === 'error' && (
-              <p className="kugouKeyState error" role="alert">
-                <TriangleAlert size={14} />
-                <span>{kugouKeyStatus.error}</span>
-              </p>
+
+            {cliSectionExpanded && (
+              <div className="cliSectionBody" id="cli-section-body">
+                <p>{messages.localCliSummary}</p>
+                <div className="cliUsageDetail">
+                  <strong>{messages.localCliScenarioTitle}</strong>
+                  <p>{messages.localCliScenarioText}</p>
+                </div>
+                <div className="cliUsageDetail">
+                  <strong>{messages.localCliUsageTitle}</strong>
+                  <p>{messages.localCliUsageText}</p>
+                  <code>{messages.localCliPrompt}</code>
+                </div>
+                <button
+                  className={`cliPackageLink ${cliCopyStatus === 'success' ? 'isCopied' : ''} ${cliCopyStatus === 'error' ? 'isError' : ''}`}
+                  type="button"
+                  onClick={copyCliPackageLink}
+                  aria-label={messages.localCliLinkAria}
+                >
+                  <span className="cliPackagePrefix">{messages.localCliLinkLabel}</span>
+                  <span className="cliPackageValue">npmjs.com/package/ncm-studio-cli</span>
+                  {cliCopyStatus === 'success' ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+                <span className="visuallyHidden" role="status" aria-live="polite">
+                  {cliCopyStatus === 'success'
+                    ? messages.cliLinkCopied
+                    : cliCopyStatus === 'error'
+                      ? messages.cliLinkCopyFailed
+                      : ''}
+                </span>
+              </div>
             )}
           </section>
 
           <div className="sidePanelDivider" />
-          <div className="cliInstallHeading">
-            <span className="cliInstallIcon" aria-hidden="true">
-              <Terminal size={18} />
-            </span>
-            <h2>{messages.localCliTitle}</h2>
-          </div>
-          <p>{messages.localCliSummary}</p>
-          <button
-            className={`cliPackageLink ${cliCopyStatus === 'success' ? 'isCopied' : ''} ${cliCopyStatus === 'error' ? 'isError' : ''}`}
-            type="button"
-            onClick={copyCliPackageLink}
-            aria-label={messages.localCliLinkAria}
-          >
-            <span className="cliPackagePrefix">{messages.localCliLinkLabel}</span>
-            <span className="cliPackageValue">npmjs.com/package/ncm-studio-cli</span>
-            {cliCopyStatus === 'success' ? <Check size={14} /> : <Copy size={14} />}
-          </button>
-          <span className="visuallyHidden" role="status" aria-live="polite">
-            {cliCopyStatus === 'success'
-              ? messages.cliLinkCopied
-              : cliCopyStatus === 'error'
-                ? messages.cliLinkCopyFailed
-                : ''}
-          </span>
+          <section className="donateSection">
+            <button
+              className="donateSectionToggle"
+              type="button"
+              aria-expanded={donateSectionExpanded}
+              aria-controls="donate-section-body"
+              aria-label={
+                donateSectionExpanded ? messages.donateSectionCollapse : messages.donateSectionExpand
+              }
+              onClick={() => setDonateSectionExpanded((current) => !current)}
+            >
+              <span className="cliInstallHeading">
+                <span className="cliInstallIcon donateIcon" aria-hidden="true">
+                  <ThumbsUp size={18} />
+                </span>
+                <span className="donateSectionTitle">{messages.donateTitle}</span>
+              </span>
+              <ChevronDown className="donateChevron" size={17} aria-hidden="true" />
+            </button>
+
+            {donateSectionExpanded && (
+              <div className="donateSectionBody" id="donate-section-body">
+                <p>{messages.donateDescription}</p>
+                <button className="wechatCopyButton" type="button" onClick={copyWechatId}>
+                  <span>{messages.copyWechat}</span>
+                </button>
+                <div className="donatePaymentPanel" id="donate-payment-panel">
+                  <div className="donateTabs" role="tablist" aria-label={messages.donateTitle}>
+                    <button
+                      className={donateMethod === 'alipay' ? 'active alipay' : 'alipay'}
+                      type="button"
+                      role="tab"
+                      aria-selected={donateMethod === 'alipay'}
+                      onClick={() => setDonateMethod('alipay')}
+                    >
+                      <WalletCards size={14} />
+                      <span>{messages.donateAlipay}</span>
+                    </button>
+                    <button
+                      className={donateMethod === 'wechat' ? 'active wechat' : 'wechat'}
+                      type="button"
+                      role="tab"
+                      aria-selected={donateMethod === 'wechat'}
+                      onClick={() => setDonateMethod('wechat')}
+                    >
+                      <MessageCircle size={14} />
+                      <span>{messages.donateWechat}</span>
+                    </button>
+                  </div>
+                  <div className="donateQrFrame" role="tabpanel">
+                    <img
+                      src={donateMethod === 'alipay' ? '/donate/alipay-qr.webp' : '/donate/wechat-qr.webp'}
+                      alt={messages.donateQrAlt(
+                        donateMethod === 'alipay' ? messages.donateAlipay : messages.donateWechat,
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
         </aside>
 
       </main>
 
       <footer className="siteFooter" data-enter>
-        <a
-          className="footerTextLink"
-          href={GITHUB_REPOSITORY_URL}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={messages.githubLinkLabel}
+        <button
+          ref={usageGuideTriggerRef}
+          className="usageGuideTrigger"
+          type="button"
+          onClick={() => setUsageGuideOpen(true)}
         >
-          <span>GitHub</span>
-          <ExternalLink size={14} />
-        </a>
+          <span>{messages.usageGuideLabel}</span>
+          <CircleAlert size={13} aria-hidden="true" />
+        </button>
         <a
           className="footerTextLink"
           href={AUTHOR_HOME_URL}
@@ -726,6 +884,75 @@ function App() {
           <ExternalLink size={14} />
         </a>
       </footer>
+
+      {usageGuideOpen && (
+        <div
+          className="usageGuideOverlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target !== event.currentTarget) return
+            setUsageGuideOpen(false)
+            window.requestAnimationFrame(() => usageGuideTriggerRef.current?.focus())
+          }}
+        >
+          <section
+            className="usageGuideDialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="usage-guide-title"
+          >
+            <header className="usageGuideDialogHeader">
+              <h2 id="usage-guide-title">{messages.usageGuideLabel}</h2>
+              <button
+                ref={usageGuideCloseRef}
+                className="usageGuideClose"
+                type="button"
+                aria-label={messages.usageGuideClose}
+                onClick={() => {
+                  setUsageGuideOpen(false)
+                  window.requestAnimationFrame(() => usageGuideTriggerRef.current?.focus())
+                }}
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="usageGuideContent">
+              <div className="seoInfoHeader">
+                <h3>{messages.seoHeading}</h3>
+                <p>{messages.seoIntro}</p>
+              </div>
+              <div className="seoInfoGrid">
+                <article>
+                  <h4>{messages.seoConvertTitle}</h4>
+                  <p>{messages.seoConvertText}</p>
+                </article>
+                <article>
+                  <h4>{messages.seoHeadphoneTitle}</h4>
+                  <p>{messages.seoHeadphoneText}</p>
+                </article>
+                <article>
+                  <h4>{messages.seoPrivacyTitle}</h4>
+                  <p>{messages.seoPrivacyText}</p>
+                </article>
+              </div>
+              <nav className="seoLanguageLinks" aria-label="Language versions">
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    className={language === option.id ? 'active' : ''}
+                    type="button"
+                    lang={option.htmlLang}
+                    aria-current={language === option.id ? 'true' : undefined}
+                    onClick={() => setLanguage(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </section>
+        </div>
+      )}
 
       {!!tracks.length && (
         <div className="bottomBar" data-enter>
@@ -753,6 +980,19 @@ function App() {
             <Trash2 size={17} />
             {messages.clearFinished}
           </button>
+        </div>
+      )}
+
+      {wechatCopyStatus && (
+        <div
+          className={`copyToast ${wechatCopyStatus}`}
+          role={wechatCopyStatus === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {wechatCopyStatus === 'success' ? <Check size={16} /> : <TriangleAlert size={16} />}
+          <span>
+            {wechatCopyStatus === 'success' ? messages.wechatCopied : messages.wechatCopyFailed}
+          </span>
         </div>
       )}
 
