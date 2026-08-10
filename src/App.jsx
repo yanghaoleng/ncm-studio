@@ -857,7 +857,7 @@ function App() {
           onClick={() => setUsageGuideOpen(true)}
         >
           <span>{messages.usageGuideLabel}</span>
-          <CircleAlert size={13} aria-hidden="true" />
+          <CircleAlert size={14} aria-hidden="true" />
         </button>
         <a
           className="footerTextLink"
@@ -867,7 +867,7 @@ function App() {
           aria-label={messages.authorLinkAria}
         >
           <span>{messages.authorLinkLabel}</span>
-          <ExternalLink size={14} />
+          <ExternalLink size={14} aria-hidden="true" />
         </a>
       </footer>
 

@@ -25,6 +25,7 @@
 | CLI复制按钮 | 框内“安装链接”与 npm 地址 | `.cliPackageLink` | `copyCliPackageLink` |
 | 复制成功 | CLI 链接框变绿并显示对钩 | `.cliPackageLink.isCopied` | `cliCopyStatus` |
 | 作者主页 | 页脚左侧使用说明旁的站点外链 | `.siteFooter .footerTextLink` | `AUTHOR_HOME_URL`, `authorLinkLabel` |
+| 页脚入口规格 | 网站说明与作者主页的统一文字、图标和间距 | `.usageGuideTrigger`, `.footerTextLink` | `13px`, `14px`, `6px` |
 | 平台格式识别 | NCM/酷狗输入路由 | 无可视组件 | `isSupportedMusicFile`, `convertMusicFile`, `detectAudioCodec` |
 | 酷狗解码器 | 网页开放 KGM/KGMA/VPR 解码 | `src/lib/kugou.js` | `convertKugouFile`, `decryptLegacyKgm` |
 | MP3转码器 | 解密音频统一输出为 MP3，不在文件行重复显示标签 | `src/lib/audio.js`, `.formatCell` | `transcodeToMp3`, `detectAudioCodec` |

@@ -40,6 +40,7 @@ NCM Studio 是一个本地音乐文件处理工具。网页支持网易云 `.ncm
 - 提供中文首页、英文 `/en/`、日文 `/ja/` 三个可索引入口，以及 canonical、hreflang、robots.txt、sitemap.xml 和 WebApplication 结构化数据。
 - Vercel 将 `/en`、`/en/`、`/ja`、`/ja/` 显式映射到对应静态落地页，避免单页应用回退覆盖多语言内容。
 - 页脚“网站使用说明”使用无下划线文字入口；弹窗内可原地切换中文、英文和日文说明，不触发页面跳转。
+- 页脚“网站使用说明”和“作者主页”统一使用 13px 文字、14px 图标与 6px 图文间距。
 
 ## CLI 安装
 
@@ -171,7 +172,7 @@ npm test
 ## 部署
 
 项目可以部署到 Vercel。
-当前正式域名为 `https://ncm.mikeywa.icu`，最新生产部署为 `dpl_7hU1UQhrX35Cj12JEXMSjMhNrJ8F`。
+当前正式域名为 `https://ncm.mikeywa.icu`，最新生产部署为 `dpl_7RiSLg2TBFBUvAp21fetoDgMPBjT`。
 Bing 站点所有权通过根路径 `/BingSiteAuth.xml` 验证；站长平台于 2026-08-10 开始准备搜索表现数据，已安排 2026-08-12 复查并继续 Bing、百度、Google 与海外 SEO。
 
 ## 技术栈

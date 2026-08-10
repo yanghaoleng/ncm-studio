@@ -1051,12 +1051,12 @@ textarea:focus-visible {
 .usageGuideTrigger {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 0;
   color: var(--muted);
   background: transparent;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 750;
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
@@ -1217,7 +1217,10 @@ textarea:focus-visible {
   color: var(--text);
 }
 
+.usageGuideTrigger svg,
 .footerTextLink svg {
+  width: 14px;
+  height: 14px;
   flex: 0 0 auto;
   color: currentColor;
 }
