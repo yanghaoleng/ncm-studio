@@ -7,6 +7,7 @@
 ## 进度
 
 - [x] 简中、英文、日文打赏说明改为可随意打赏并支持后续维护，不再限定咖啡金额；繁中等未发布语言功能继续保留在本地改动中。
+- [x] 新打赏文案已从干净提交生产部署并线上验收：`dpl_9MbUjALQHEFnAAG3C4fRW4adn5f9`；正式域名返回 200。
 - [x] 支持 KGM、KGMA、VPR 纯本地解码。
 - [x] 支持 KGG/KGM v5 导入 `KGMusicV3.db` 或 `kgg.key` 后解码。
 - [x] 解密结果统一转为真实 MP3，非 MP3 音频使用 320 kbps 编码。
@@ -51,4 +52,4 @@
 - 现有 NCM 网页与 CLI 行为保持不变；酷狗格式暂不加入 CLI。
 - 网页不再开放依赖本机密钥库的 KGG 转换。
 - QQ 音乐与汽水音乐仍处于调研阶段，不在本次发布范围。
-- 最新生产部署：`dpl_7RiSLg2TBFBUvAp21fetoDgMPBjT`，正式域名：`https://ncm.mikeywa.icu`。
+- 最新生产部署：`dpl_9MbUjALQHEFnAAG3C4fRW4adn5f9`，正式域名：`https://ncm.mikeywa.icu`。
