@@ -20,7 +20,7 @@ import {
   ThumbsUp,
   Trash2,
   TriangleAlert,
-  UploadCloud,
+  Upload,
   WalletCards,
   X,
 } from 'lucide-react'
@@ -48,9 +48,13 @@ const SPRING_SCALE_IN = {
   initialDelayMax: 400,
 }
 
+const BRAND_TITLE_PARTS = ['水', '下', '听', '歌', '大', '救', '星']
+const BRAND_SUBTITLE_PARTS = ['NCM', 'Studio']
+
 const I18N = {
   zh: {
     appTitle: '水下听歌大救星',
+    brandReplayLabel: '重播网站标题和游泳圈动画',
     convertError: '转换失败',
     processingTitle: '音乐文件转MP3',
     chooseDropTitle: '选择或拖入音乐文件',
@@ -127,6 +131,7 @@ const I18N = {
   },
   'zh-Hant': {
     appTitle: '水下听歌大救星',
+    brandReplayLabel: '重新播放網站標題和游泳圈動畫',
     convertError: '轉換失敗',
     processingTitle: '音樂檔案轉 MP3',
     chooseDropTitle: '選擇或拖入音樂檔案',
@@ -203,6 +208,7 @@ const I18N = {
   },
   en: {
     appTitle: '水下听歌大救星',
+    brandReplayLabel: 'Replay the title and floating swim ring animation',
     convertError: 'Conversion failed',
     processingTitle: 'Music files to MP3',
     chooseDropTitle: 'Choose or drop music files',
@@ -279,6 +285,7 @@ const I18N = {
   },
   ja: {
     appTitle: '水下听歌大救星',
+    brandReplayLabel: 'タイトルと浮き輪のアニメーションをもう一度再生',
     convertError: '変換に失敗しました',
     processingTitle: '音楽ファイルを MP3 へ',
     chooseDropTitle: '音楽ファイルを選択またはドロップ',
@@ -575,6 +582,7 @@ function App() {
   const [wechatCopyStatus, setWechatCopyStatus] = useState('')
   const [usageGuideOpen, setUsageGuideOpen] = useState(false)
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
+  const [brandMotionKey, setBrandMotionKey] = useState(0)
   const fileInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
   const wechatCopyTimerRef = useRef(null)
@@ -615,6 +623,8 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
+    const favicon = document.querySelector('link[data-theme-favicon]')
+    if (favicon) favicon.href = theme === 'dark' ? '/favicon-dark.webp' : '/favicon-light.webp'
   }, [theme])
 
   useEffect(() => {
@@ -949,11 +959,54 @@ function App() {
     <div className={`app ${tracks.length ? 'hasTracks' : ''}`} ref={rootRef}>
       <header className="topbar" data-enter>
           <div className="brand">
-            <div className="brandMark">
-              <Music2 size={22} />
-            </div>
-            <div>
-              <h1>{messages.appTitle}</h1>
+            <button
+              className="brandMark"
+              type="button"
+              onClick={() => setBrandMotionKey((current) => current + 1)}
+              aria-label={messages.brandReplayLabel}
+              title={messages.brandReplayLabel}
+            >
+              <img
+                key={brandMotionKey}
+                className="brandMarkIcon"
+                src={theme === 'dark' ? '/favicon-dark.webp' : '/favicon-light.webp'}
+                alt=""
+                draggable="false"
+              />
+            </button>
+            <div className="brandText">
+              <h1>
+                <button
+                  className="brandTitleReplay"
+                  type="button"
+                  onClick={() => setBrandMotionKey((current) => current + 1)}
+                  aria-label={messages.brandReplayLabel}
+                  title={messages.brandReplayLabel}
+                >
+                  <span key={brandMotionKey} className="brandTitleMotion" aria-hidden="true">
+                    {BRAND_TITLE_PARTS.map((part, index) => (
+                      <span
+                        className={`brandTitleUnit ${index >= 2 ? 'brandTitleUnitStrong' : ''}`}
+                        style={{ '--brand-word-index': index }}
+                        key={part}
+                      >
+                        {part}
+                      </span>
+                    ))}
+                  </span>
+                </button>
+              </h1>
+              <p key={`brand-subtitle-${brandMotionKey}`} className="brandSubtitle" aria-label="NCM Studio">
+                {BRAND_SUBTITLE_PARTS.map((part, index) => (
+                  <span
+                    className="brandSubtitleUnit"
+                    style={{ '--brand-subtitle-index': index }}
+                    key={part}
+                  >
+                    {part}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
 
@@ -1050,7 +1103,7 @@ function App() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <UploadCloud size={34} />
+                <Upload size={34} strokeWidth={2.8} />
                 <strong>{messages.chooseDropTitle}</strong>
                 <span>{messages.chooseDropSubtitle}</span>
               </button>
@@ -1059,7 +1112,7 @@ function App() {
             <>
               {isDragging && (
                 <div className="dropOverlay">
-                  <UploadCloud size={34} />
+                  <Upload size={34} strokeWidth={2.8} />
                   <strong>{messages.dropOverlayTitle}</strong>
                   <span>{messages.dropOverlaySubtitle}</span>
                 </div>
@@ -1079,7 +1132,7 @@ function App() {
                 </div>
                 <div className="queueControls">
                   <button className="secondaryButton" type="button" onClick={() => fileInputRef.current?.click()}>
-                    <UploadCloud size={17} />
+                    <Upload size={17} strokeWidth={2.8} />
                     {messages.chooseMore}
                   </button>
                   <button

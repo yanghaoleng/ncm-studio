@@ -13,6 +13,8 @@
 
 ![水下听歌大救星首页截图](docs/assets/homepage.png)
 
+Favicon 与标题图标使用 Figma 节点 `170:984`（亮色）和 `170:987`（暗色）的透明原图，按页面 44px 展示尺寸的 3× 输出为 132×132 透明 WebP：`public/favicon-light.webp` 与 `public/favicon-dark.webp`。网站会随明暗主题切换图标；标题图标首次加载时做一次轻微上下 Q 弹浮动。文字标题按“水 / 下 / 听 / 歌 / 大 / 救 / 星”逐字柔化入场，固定产品名 `NCM Studio` 作为极小副标题在标题动画结束后分成 `NCM` 与 `Studio` 出现；点击图标或标题可同步重播两组动效。
+
 ## 适合的使用场景
 
 - 你已经有一批本地 `.ncm/.kgm/.kgma/.vpr` 文件，希望在浏览器里转成 MP3。
@@ -23,6 +25,7 @@
 ## 功能
 
 - 拖入或选择本地 `.ncm/.kgm/.kgma/.vpr` 文件。
+- 导入入口使用无云朵的上箭头图标，避免误解为会上传到云端。
 - 在浏览器本地完成文件解析、酷狗解密和 MP3 转码。
 - KGM、KGMA、VPR 可直接转换；不再提供依赖本机密钥库的 KGG 转换。
 - 尽可能读取元数据和内嵌封面。
@@ -173,7 +176,7 @@ npm test
 ## 部署
 
 项目可以部署到 Vercel。
-当前正式域名为 `https://ncm.mikeywa.icu`；本轮品牌与打赏动效的功能验收部署为 `dpl_5oFDUzFhfRVAGHkqcvNoE6ZAymFr`。
+当前正式域名为 `https://ncm.mikeywa.icu`；最新 3× WebP 明暗图标、上下 Q 弹、标题柔化入场与本地导入图标部署为 `dpl_DcySJhQF4WRMoPN7AeQ1B2zSzyqi`。
 Bing 站点所有权通过根路径 `/BingSiteAuth.xml` 验证；站长平台于 2026-08-10 开始准备搜索表现数据，已安排 2026-08-12 复查并继续 Bing、百度、Google 与海外 SEO。
 
 ## 技术栈
