@@ -37,7 +37,7 @@
 | Bing 搜索表现 | 真实查询词、曝光、点击和排名报告 | Bing Webmaster Tools → Search Performance | 验证后约 48 小时回填 |
 | 打赏作者 | 右栏底部可折叠支持模块 | `.donateSection`, `.donateSectionToggle` | `donateSectionExpanded` |
 | 打赏文案 | 展开后的免费说明、随意打赏与需求建议文字 | `.donateSectionBody > p` | `donateDescription` |
-| 随机夸赞祝福 | 打赏固定开头与结尾之间的随机感谢语 | `.donatePraiseLine`, `.springScaleWord` | `donatePraises`, `donatePraiseIndex`, `SpringScaleText` |
+| 随机夸赞祝福 | 打赏固定开头与结尾之间的轻松祝福池，当前共 9 条 | `.donatePraiseLine`, `.springScaleWord` | `donatePraises`, `donatePraiseIndex`, `SpringScaleText` |
 | 右栏折叠联动 | 打赏展开时自动收起 CLI | `.cliSection`, `.donateSection` | `donateSectionExpanded`, `setCliSectionExpanded` |
 | 二维码炫彩描边 | 打赏栏目展开后显示的 2px 彩色外圈 | `.donateQrFrame` | `donate-border-spectrum` |
 | 复制微信号 | 打赏说明中的微信联系方式复制按钮 | `.wechatCopyButton` | `WECHAT_ID`, `copyWechatId` |
