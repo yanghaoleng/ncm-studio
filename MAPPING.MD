@@ -2,6 +2,7 @@
 
 | 俗称 | 学名/位置 | CSS / 组件 | 变量/方法 |
 | --- | --- | --- | --- |
+| 网站名字/标题 | 顶栏品牌、浏览器标题与结构化数据名称 | `.brand h1`, `<title>`, `WebApplication.name` | `I18N.*.appTitle`, `水下听歌大救星` |
 | 音乐文件转MP3面板 | 页面主工作区 | `.queuePanel.processingPanel` | `tracks`, `addFiles`, `processingTitle` |
 | 文件拖入区 | 无文件时的选择/拖放区域 | `.dropzone.heroDropzone` | `fileInputRef`, `isDragging` |
 | 标题与拖入区间距 | 空状态标题和虚线拖入区之间 | `.uploadEmpty`, `.queueHeader.uploadHeader` | `gap`, `margin-bottom` |
@@ -36,6 +37,7 @@
 | Bing 搜索表现 | 真实查询词、曝光、点击和排名报告 | Bing Webmaster Tools → Search Performance | 验证后约 48 小时回填 |
 | 打赏作者 | 右栏底部可折叠支持模块 | `.donateSection`, `.donateSectionToggle` | `donateSectionExpanded` |
 | 打赏文案 | 展开后的免费说明、随意打赏与需求建议文字 | `.donateSectionBody > p` | `donateDescription` |
+| 随机夸赞祝福 | 打赏固定开头与结尾之间的随机感谢语 | `.donatePraiseLine`, `.springScaleWord` | `donatePraises`, `donatePraiseIndex`, `SpringScaleText` |
 | 右栏折叠联动 | 打赏展开时自动收起 CLI | `.cliSection`, `.donateSection` | `donateSectionExpanded`, `setCliSectionExpanded` |
 | 二维码炫彩描边 | 打赏栏目展开后显示的 2px 彩色外圈 | `.donateQrFrame` | `donate-border-spectrum` |
 | 复制微信号 | 打赏说明中的微信联系方式复制按钮 | `.wechatCopyButton` | `WECHAT_ID`, `copyWechatId` |

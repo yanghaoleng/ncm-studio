@@ -31,16 +31,26 @@ import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 const AUTHOR_HOME_URL = 'https://mikeywa.icu'
 const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
 const WECHAT_ID = 'yanghaoleng'
+const LANGUAGE_STORAGE_KEY = 'ncm-studio-language'
+const DEFAULT_LANGUAGE_ENDPOINT = '/api/default-language'
 
 const LANGUAGE_OPTIONS = [
-  { id: 'zh', short: '中', label: '中文', htmlLang: 'zh-CN' },
+  { id: 'zh', short: '简', label: '简体中文', htmlLang: 'zh-CN' },
+  { id: 'zh-Hant', short: '繁', label: '繁體中文', htmlLang: 'zh-Hant' },
   { id: 'en', short: 'EN', label: 'English', htmlLang: 'en' },
   { id: 'ja', short: '日', label: '日本語', htmlLang: 'ja' },
 ]
 
+const SPRING_SCALE_IN = {
+  duration: 259,
+  stagger: 68,
+  easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  initialDelayMax: 400,
+}
+
 const I18N = {
   zh: {
-    appTitle: 'NCM Studio',
+    appTitle: '水下听歌大救星',
     convertError: '转换失败',
     processingTitle: '音乐文件转MP3',
     chooseDropTitle: '选择或拖入音乐文件',
@@ -77,7 +87,20 @@ const I18N = {
     cliLinkCopied: '复制成功',
     cliLinkCopyFailed: '复制失败',
     donateTitle: '打赏作者',
-    donateDescription: '这个工具会一直免费。\n如果它帮你省了时间，可以随意打赏，支持后续维护。\n也可以给我提要求，我会努力实现！',
+    donateIntro: '这个工具会一直免费，如果它帮你省了时间，可以随意打赏。',
+    donatePraises: [
+      '愿意支持免费工具的人，眼光和心意都很棒。祝你今天诸事顺利！',
+      '有品位又有爱心的你，值得一路有好歌，也一路有好运。',
+      '支持独立小工具的人真的很酷。愿你所求皆如愿，所行皆坦途。',
+      '愿你的善意都有回响，想做的事都顺利，想听的歌都常伴。',
+      '愿你每次下水都有好歌陪伴，上岸以后也一直有好运。',
+      '祝你工作不加班、游泳不呛水、耳机永远有电，好运一直在线！',
+      '谢谢你愿意为这个小工具续航。祝你每天都有值得开心的小惊喜！',
+      '你的支持会变成下一次更新的动力，也愿你的每份努力都有漂亮回报。',
+      '会为好用的免费工具鼓掌的人，品味和人品都很在线。祝你天天开心！',
+      '愿这份心意带来的快乐翻倍回到你身上，今天和以后都顺顺利利！',
+    ],
+    donateRequest: '你也可以给我提要求，我会努力实现！',
     donateSectionExpand: '展开打赏作者',
     donateSectionCollapse: '收起打赏作者',
     donateAlipay: '支付宝',
@@ -89,7 +112,7 @@ const I18N = {
     usageGuideLabel: '网站使用说明',
     usageGuideClose: '关闭网站使用说明',
     seoHeading: '把已有音乐整理到离线设备',
-    seoIntro: 'NCM Studio 在浏览器本地把您有权使用的网易云 NCM 与酷狗音乐文件转换为 MP3，适合游泳骨传导耳机、运动耳机、车载播放器和随身播放器。',
+    seoIntro: '水下听歌大救星在浏览器本地把您有权使用的网易云 NCM 与酷狗音乐文件转换为 MP3，适合游泳骨传导耳机、运动耳机、车载播放器和随身播放器。',
     seoConvertTitle: 'NCM / KGM 转 MP3',
     seoConvertText: '支持 NCM、KGM、KGMA、VPR，转换、试听与 ZIP 打包均在浏览器内完成。',
     seoHeadphoneTitle: '游泳骨传导耳机音乐',
@@ -100,10 +123,88 @@ const I18N = {
     authorLinkLabel: '作者主页',
     authorLinkAria: '打开作者主页',
     themeToggleLabel: (theme) => (theme === 'light' ? '切换到深色模式' : '切换到浅色模式'),
-    languageToggleLabel: (current, next) => `当前语言：${current}。切换到${next}`,
+    languageMenuLabel: (current) => `当前语言：${current}。打开语言菜单`,
+    languageListLabel: '语言版本',
+  },
+  'zh-Hant': {
+    appTitle: '水下听歌大救星',
+    convertError: '轉換失敗',
+    processingTitle: '音樂檔案轉 MP3',
+    chooseDropTitle: '選擇或拖入音樂檔案',
+    chooseDropSubtitle: '支援 NCM、KGM、KGMA、VPR，檔案只會在本機處理',
+    dropOverlayTitle: '放開即可匯入',
+    dropOverlaySubtitle: '新檔案會自動加入處理佇列',
+    queueSummary: ({ total, ready, converting }) =>
+      `${total} 個檔案 · ${ready} 個完成 · ${converting} 個轉換中`,
+    chooseMore: '繼續新增',
+    downloadZip: '打包下載',
+    zipping: '正在打包',
+    zipStalled: 'ZIP 進度暫時沒有變化。請再等一下；若仍然卡住，請重新整理後再試，或減少檔案數量後分批打包。',
+    zipFailed: '打包失敗，請再試一次。若檔案較多，建議減少數量後分批打包。',
+    readyDownloadSuffix: '個 MP3 可下載',
+    zipShort: 'ZIP',
+    clearFinished: '清除完成項目',
+    metadataWaiting: '等待解析音樂資訊',
+    previewLabel: '試聽預覽',
+    previewEmptyTitle: '選擇一首已完成的歌曲',
+    previewEmptySubtitle: '完成轉換後可在這裡播放',
+    audioLabel: '歌曲試聽播放器，按空白鍵播放或暫停',
+    platformImportNote: '支援網易雲 NCM 與酷狗 KGM / KGMA / VPR',
+    localCliTitle: '安裝 CLI，讓 AI 幫你處理',
+    localCliSummary: '讓可存取本機資料夾的 AI 助手批次處理 NCM 檔案。',
+    localCliScenarioTitle: '適用情境',
+    localCliScenarioText: '適合一次轉換大量檔案，或需要經常轉換指定資料夾的用戶。',
+    localCliUsageTitle: '使用方法',
+    localCliUsageText: '把安裝連結交給有本機檔案與指令權限的豆包、MiniMax、WorkBuddy 等桌面端 AI，先讓它安裝 CLI，再告訴它要轉換的資料夾。',
+    localCliPrompt: '範例：請安裝 ncm-studio-cli，然後把「音樂資料夾」中的 NCM 檔案轉換到「輸出資料夾」。',
+    localCliExpand: '展開 CLI 使用說明',
+    localCliCollapse: '收起 CLI 使用說明',
+    localCliLinkLabel: '安裝連結',
+    localCliLinkAria: '複製 ncm-studio-cli 的 npm 安裝連結',
+    cliLinkCopied: '複製成功',
+    cliLinkCopyFailed: '複製失敗',
+    donateTitle: '支持作者',
+    donateIntro: '這個工具會一直免費，如果它幫你省下時間，可以隨意打賞。',
+    donatePraises: [
+      '願意支持免費工具的人，眼光和心意都很棒。祝你今天諸事順利！',
+      '有品味又有愛心的你，值得一路有好歌，也一路有好運。',
+      '支持獨立小工具的人真的很酷。願你所求皆如願，所行皆坦途。',
+      '願你的善意都有回響，想做的事都順利，想聽的歌都常伴。',
+      '願你每次下水都有好歌陪伴，上岸以後也一直有好運。',
+      '祝你工作不加班、游泳不嗆水、耳機永遠有電，好運一直在線！',
+      '謝謝你願意為這個小工具續航。祝你每天都有值得開心的小驚喜！',
+      '你的支持會變成下一次更新的動力，也願你的每份努力都有漂亮回報。',
+      '會為好用的免費工具鼓掌的人，品味和人品都很在線。祝你天天開心！',
+      '願這份心意帶來的快樂加倍回到你身上，今天和以後都順順利利！',
+    ],
+    donateRequest: '你也可以向我提出要求，我會努力實現！',
+    donateSectionExpand: '展開支持作者',
+    donateSectionCollapse: '收起支持作者',
+    donateAlipay: '支付寶',
+    donateWechat: '微信支付',
+    donateQrAlt: (method) => `${method}收款 QR Code`,
+    copyWechat: '複製微信號',
+    wechatCopied: '已複製微信號',
+    wechatCopyFailed: '複製失敗，請再試一次',
+    usageGuideLabel: '網站使用說明',
+    usageGuideClose: '關閉網站使用說明',
+    seoHeading: '把已有音樂整理到離線裝置',
+    seoIntro: '水下听歌大救星會在瀏覽器本機，把你有權使用的網易雲 NCM 與酷狗音樂檔案轉換為 MP3，適合游泳骨傳導耳機、運動耳機、車用播放器和隨身播放器。',
+    seoConvertTitle: 'NCM / KGM 轉 MP3',
+    seoConvertText: '支援 NCM、KGM、KGMA、VPR，轉換、試聽與 ZIP 打包都在瀏覽器內完成。',
+    seoHeadphoneTitle: '游泳骨傳導耳機音樂',
+    seoHeadphoneText: '可將已購買、已獲授權，或你有合法使用權的本機音樂整理為 MP3，再匯入耳機的離線儲存空間。',
+    seoPrivacyTitle: '檔案不會上傳伺服器',
+    seoPrivacyText: '音訊只會在目前裝置的記憶體中處理，不作為線上音樂資源提供或分發。',
+    githubLinkLabel: 'GitHub 倉庫',
+    authorLinkLabel: '作者首頁',
+    authorLinkAria: '開啟作者首頁',
+    themeToggleLabel: (theme) => (theme === 'light' ? '切換到深色模式' : '切換到淺色模式'),
+    languageMenuLabel: (current) => `目前語言：${current}。開啟語言選單`,
+    languageListLabel: '語言版本',
   },
   en: {
-    appTitle: 'NCM Studio',
+    appTitle: '水下听歌大救星',
     convertError: 'Conversion failed',
     processingTitle: 'Music files to MP3',
     chooseDropTitle: 'Choose or drop music files',
@@ -140,7 +241,20 @@ const I18N = {
     cliLinkCopied: 'Copied',
     cliLinkCopyFailed: 'Copy failed',
     donateTitle: 'Support the author',
-    donateDescription: 'This tool will always be free.\nIf it saved you time, you can leave any amount to support future maintenance.\nYou can also send me feature requests, and I will do my best to build them!',
+    donateIntro: 'This tool will always be free. If it saved you time, you can leave any amount as a tip.',
+    donatePraises: [
+      'People who support free tools have great taste and generous hearts. Wishing you a wonderfully smooth day!',
+      'You have both great taste and a kind heart. May good music and good luck stay with you.',
+      'Supporting independent tools is genuinely cool. May your wishes come true and your path stay open.',
+      'May your kindness always find its way back to you, with everything going smoothly and great music close by.',
+      'May every swim come with great music, and every return to shore bring even more good luck.',
+      'May work end on time, every swim stay smooth, your headphones stay charged, and good luck stay online!',
+      'Thank you for helping this little tool keep going. May every day bring you a happy surprise!',
+      'Your support powers the next update. May every effort you make bring a beautiful result.',
+      'Anyone who cheers for useful free tools has excellent taste and a lovely heart. Wishing you joy every day!',
+      'May the happiness behind your kindness return to you twice over, today and always!',
+    ],
+    donateRequest: 'You can also send me requests, and I’ll do my best to make them happen!',
     donateSectionExpand: 'Expand author support',
     donateSectionCollapse: 'Collapse author support',
     donateAlipay: 'Alipay',
@@ -152,21 +266,22 @@ const I18N = {
     usageGuideLabel: 'Website guide',
     usageGuideClose: 'Close website guide',
     seoHeading: 'Prepare your own music for offline devices',
-    seoIntro: 'NCM Studio converts legally obtained NetEase NCM and KuGou music files to MP3 locally in your browser for swimming headphones, bone-conduction sports headphones, car stereos, and portable players.',
+    seoIntro: '水下听歌大救星 converts legally obtained NetEase NCM and KuGou music files to MP3 locally in your browser for swimming headphones, bone-conduction sports headphones, car stereos, and portable players.',
     seoConvertTitle: 'NCM and KGM to MP3',
     seoConvertText: 'Convert, preview, and package NCM, KGM, KGMA, and VPR files without uploading your audio.',
     seoHeadphoneTitle: 'Music for swimming headphones',
     seoHeadphoneText: 'Prepare files you have purchased, downloaded with permission, or otherwise have the right to use before copying them to offline headphone storage.',
     seoPrivacyTitle: 'Private local processing',
-    seoPrivacyText: 'Audio stays in this device’s memory. NCM Studio does not provide or distribute music.',
+    seoPrivacyText: 'Audio stays in this device’s memory. 水下听歌大救星 does not provide or distribute music.',
     githubLinkLabel: 'GitHub repository',
     authorLinkLabel: 'Author',
     authorLinkAria: 'Open the author homepage',
     themeToggleLabel: (theme) => (theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'),
-    languageToggleLabel: (current, next) => `Current language: ${current}. Switch to ${next}`,
+    languageMenuLabel: (current) => `Current language: ${current}. Open language menu`,
+    languageListLabel: 'Language versions',
   },
   ja: {
-    appTitle: 'NCM Studio',
+    appTitle: '水下听歌大救星',
     convertError: '変換に失敗しました',
     processingTitle: '音楽ファイルを MP3 へ',
     chooseDropTitle: '音楽ファイルを選択またはドロップ',
@@ -203,7 +318,20 @@ const I18N = {
     cliLinkCopied: 'コピー完了',
     cliLinkCopyFailed: 'コピー失敗',
     donateTitle: '作者を応援',
-    donateDescription: 'このツールはずっと無料です。\n時間の節約になったら、金額を問わず今後のメンテナンスを応援していただけます。\n機能のリクエストも歓迎です。できる限り実現します！',
+    donateIntro: 'このツールはずっと無料です。時間の節約になったら、お好きな金額で応援していただけます。',
+    donatePraises: [
+      '無料ツールを応援してくれる方は、センスも心遣いもすてきです。今日が順調な一日になりますように！',
+      'センスも優しさもあるあなたに、好きな音楽と幸運がずっと寄り添いますように。',
+      '個人開発のツールを応援するのは、本当にかっこいいことです。願いがかないますように。',
+      'あなたの優しさが巡り巡って戻り、やりたいことが順調に進み、好きな音楽がいつもそばにありますように。',
+      '泳ぐたびに好きな音楽が寄り添い、水から上がったあとも幸運が続きますように。',
+      '残業なし、泳ぎは快適、イヤホンはいつも充電満タン、幸運は常にオンラインでありますように！',
+      'この小さなツールを支えてくださってありがとうございます。毎日うれしい驚きがありますように！',
+      'あなたの応援が次のアップデートの力になります。努力がすてきな実を結びますように。',
+      '便利な無料ツールを応援する方は、センスも人柄もすてきです。毎日が楽しくなりますように！',
+      'その優しさから生まれた幸せが、何倍にもなってあなたへ戻りますように。',
+    ],
+    donateRequest: 'ご要望もぜひ教えてください。できる限り実現します！',
     donateSectionExpand: '作者の応援を開く',
     donateSectionCollapse: '作者の応援を閉じる',
     donateAlipay: 'Alipay',
@@ -215,7 +343,7 @@ const I18N = {
     usageGuideLabel: 'サイトの使い方',
     usageGuideClose: 'サイトの使い方を閉じる',
     seoHeading: '手持ちの音楽をオフライン機器へ',
-    seoIntro: 'NCM Studio は、正当に利用できる NetEase NCM と KuGou の音楽ファイルをブラウザ内で MP3 に変換し、水泳用骨伝導イヤホン、スポーツイヤホン、カーオーディオなどへ整理できます。',
+    seoIntro: '水下听歌大救星は、正当に利用できる NetEase NCM と KuGou の音楽ファイルをブラウザ内で MP3 に変換し、水泳用骨伝導イヤホン、スポーツイヤホン、カーオーディオなどへ整理できます。',
     seoConvertTitle: 'NCM・KGM を MP3 に変換',
     seoConvertText: 'NCM、KGM、KGMA、VPR の変換、試聴、ZIP 保存をブラウザ内で完結できます。',
     seoHeadphoneTitle: '水泳用骨伝導イヤホンの音楽',
@@ -226,8 +354,174 @@ const I18N = {
     authorLinkLabel: '作者ページ',
     authorLinkAria: '作者ホームページを開く',
     themeToggleLabel: (theme) => (theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'),
-    languageToggleLabel: (current, next) => `現在の言語：${current}。${next}に切り替え`,
+    languageMenuLabel: (current) => `現在の言語：${current}。言語メニューを開く`,
+    languageListLabel: '言語バージョン',
   },
+}
+
+const SUPPORTED_LANGUAGE_IDS = new Set(LANGUAGE_OPTIONS.map((option) => option.id))
+
+function normalizeLanguageId(value) {
+  if (!value) return ''
+
+  const language = String(value).trim()
+  const lowerLanguage = language.toLowerCase()
+
+  if (SUPPORTED_LANGUAGE_IDS.has(language)) return language
+  if (lowerLanguage === 'zh-hant' || lowerLanguage.startsWith('zh-hant-') || lowerLanguage === 'zh-tw' || lowerLanguage === 'zh-hk' || lowerLanguage === 'zh-mo') return 'zh-Hant'
+  if (lowerLanguage === 'zh-hans' || lowerLanguage.startsWith('zh-hans-') || lowerLanguage === 'zh-cn' || lowerLanguage === 'zh-sg') return 'zh'
+  if (lowerLanguage === 'ja' || lowerLanguage.startsWith('ja-')) return 'ja'
+  if (lowerLanguage === 'en' || lowerLanguage.startsWith('en-')) return 'en'
+
+  return ''
+}
+
+function getStoredLanguage() {
+  if (typeof window === 'undefined') return ''
+
+  try {
+    return normalizeLanguageId(window.localStorage.getItem(LANGUAGE_STORAGE_KEY))
+  } catch {
+    return ''
+  }
+}
+
+function persistLanguage(language) {
+  if (typeof window === 'undefined') return
+  if (!SUPPORTED_LANGUAGE_IDS.has(language)) return
+
+  try {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
+  } catch {
+    // Ignore private browsing and storage permission failures.
+  }
+}
+
+function getRequestedLanguage() {
+  if (typeof window === 'undefined') return ''
+
+  try {
+    const requestedLanguage = new URLSearchParams(window.location.search).get('lang')
+    return normalizeLanguageId(requestedLanguage)
+  } catch {
+    return ''
+  }
+}
+
+function getBrowserLanguagePreference() {
+  if (typeof navigator === 'undefined') return { language: '', isAmbiguousChinese: false }
+
+  const languages = navigator.languages?.length ? navigator.languages : [navigator.language]
+  let isAmbiguousChinese = false
+
+  for (const language of languages) {
+    const normalizedBrowserLanguage = String(language || '').trim().toLowerCase()
+
+    if (normalizedBrowserLanguage === 'zh') {
+      isAmbiguousChinese = true
+      continue
+    }
+
+    const normalizedLanguage = normalizeLanguageId(language)
+    if (normalizedLanguage) return { language: normalizedLanguage, isAmbiguousChinese: false }
+  }
+
+  return { language: '', isAmbiguousChinese }
+}
+
+function shouldResolveGeoLanguage() {
+  if (typeof window === 'undefined') return false
+  if (getStoredLanguage() || getRequestedLanguage()) return false
+
+  const browserLanguage = getBrowserLanguagePreference()
+  return !browserLanguage.language || browserLanguage.isAmbiguousChinese
+}
+
+function splitAnimatedWords(text, locale) {
+  if (typeof Intl?.Segmenter === 'function') {
+    const segments = Array.from(
+      new Intl.Segmenter(locale, { granularity: 'word' }).segment(text),
+      ({ segment, isWordLike }) => ({ text: segment, animate: Boolean(isWordLike) }),
+    )
+
+    return segments.reduce((parts, part) => {
+      if (part.animate || /^\s+$/u.test(part.text) || parts.length === 0) {
+        parts.push(part)
+      } else {
+        parts[parts.length - 1].text += part.text
+      }
+      return parts
+    }, [])
+  }
+
+  return (text.match(/(\S+|\s+)/g) || [text]).map((part) => ({
+    text: part,
+    animate: !/^\s+$/u.test(part),
+  }))
+}
+
+function SpringScaleText({ text, locale }) {
+  const hostRef = useRef(null)
+  const parts = useMemo(() => splitAnimatedWords(text, locale), [locale, text])
+
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host) return undefined
+
+    const units = Array.from(host.querySelectorAll('.springScaleWord'))
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      units.forEach((unit) => {
+        unit.style.opacity = '1'
+        unit.style.transform = 'translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotate(0deg) scale(1)'
+      })
+      return undefined
+    }
+
+    const initialDelay = Math.round(Math.random() * SPRING_SCALE_IN.initialDelayMax)
+    const animations = units.map((unit, index) =>
+      unit.animate(
+        [
+          {
+            opacity: 0,
+            transform: 'translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotate(0deg) scale(0.7)',
+          },
+          {
+            opacity: 1,
+            transform: 'translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotate(0deg) scale(1)',
+          },
+        ],
+        {
+          delay: initialDelay + index * SPRING_SCALE_IN.stagger,
+          duration: SPRING_SCALE_IN.duration,
+          easing: SPRING_SCALE_IN.easing,
+          fill: 'forwards',
+        },
+      ),
+    )
+
+    return () => animations.forEach((animation) => animation.cancel())
+  }, [parts])
+
+  return (
+    <span className="springScaleText" ref={hostRef}>
+      {parts.map((part, index) =>
+        part.animate ? (
+          <span className="springScaleWord" key={`${part.text}-${index}`}>
+            {part.text}
+          </span>
+        ) : (
+          <span key={`${part.text}-${index}`}>
+            {part.text}
+          </span>
+        ),
+      )}
+    </span>
+  )
+}
+
+function nextRandomIndex(length, currentIndex) {
+  if (length <= 1) return 0
+  return (currentIndex + 1 + Math.floor(Math.random() * (length - 1))) % length
 }
 
 function useGsapIntro(deps = []) {
@@ -255,9 +549,17 @@ function useGsapIntro(deps = []) {
 }
 
 function getInitialLanguage() {
-  if (typeof window === 'undefined') return 'zh'
-  const requestedLanguage = new URLSearchParams(window.location.search).get('lang')
-  return LANGUAGE_OPTIONS.some((option) => option.id === requestedLanguage) ? requestedLanguage : 'zh'
+  const storedLanguage = getStoredLanguage()
+  if (storedLanguage) return storedLanguage
+
+  const requestedLanguage = getRequestedLanguage()
+  if (requestedLanguage) return requestedLanguage
+
+  const browserLanguage = getBrowserLanguagePreference()
+  if (browserLanguage.language) return browserLanguage.language
+  if (browserLanguage.isAmbiguousChinese) return 'zh'
+
+  return 'en'
 }
 
 function App() {
@@ -272,22 +574,40 @@ function App() {
   const [cliCopyStatus, setCliCopyStatus] = useState('')
   const [cliSectionExpanded, setCliSectionExpanded] = useState(false)
   const [donateSectionExpanded, setDonateSectionExpanded] = useState(false)
+  const [donatePraiseIndex, setDonatePraiseIndex] = useState(-1)
   const [donateMethod, setDonateMethod] = useState('wechat')
   const [wechatCopyStatus, setWechatCopyStatus] = useState('')
   const [usageGuideOpen, setUsageGuideOpen] = useState(false)
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
   const fileInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
   const wechatCopyTimerRef = useRef(null)
   const usageGuideTriggerRef = useRef(null)
   const usageGuideCloseRef = useRef(null)
+  const languageMenuRef = useRef(null)
   const tracksRef = useRef([])
   const audioRef = useRef(null)
+  const shouldResolveGeoLanguageRef = useRef(shouldResolveGeoLanguage())
   const rootRef = useGsapIntro([])
   const messages = I18N[language]
   const currentLanguageOption =
     LANGUAGE_OPTIONS.find((option) => option.id === language) || LANGUAGE_OPTIONS[0]
-  const nextLanguageOption =
-    LANGUAGE_OPTIONS[(LANGUAGE_OPTIONS.indexOf(currentLanguageOption) + 1) % LANGUAGE_OPTIONS.length]
+  const donatePraise =
+    messages.donatePraises[Math.max(0, donatePraiseIndex) % messages.donatePraises.length]
+
+  function chooseNextDonatePraise() {
+    setDonatePraiseIndex((current) => nextRandomIndex(messages.donatePraises.length, current))
+  }
+
+  function toggleDonateSection() {
+    if (!donateSectionExpanded) chooseNextDonatePraise()
+    setDonateSectionExpanded((current) => !current)
+  }
+
+  function revealDonateSection() {
+    chooseNextDonatePraise()
+    setDonateSectionExpanded(true)
+  }
 
   const selectedTrack = useMemo(
     () =>
@@ -304,6 +624,62 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = currentLanguageOption.htmlLang
   }, [currentLanguageOption.htmlLang])
+
+  useEffect(() => {
+    if (!shouldResolveGeoLanguageRef.current) return undefined
+
+    const browserLanguage = getBrowserLanguagePreference()
+    const controller = new AbortController()
+
+    async function resolveGeoLanguage() {
+      try {
+        const response = await fetch(DEFAULT_LANGUAGE_ENDPOINT, {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        })
+        if (!response.ok) return
+
+        const data = await response.json()
+        const geoLanguage = normalizeLanguageId(data?.language)
+        if (!geoLanguage || getStoredLanguage() || getRequestedLanguage()) return
+
+        if (browserLanguage.isAmbiguousChinese) {
+          if (geoLanguage === 'zh' || geoLanguage === 'zh-Hant') setLanguage(geoLanguage)
+          return
+        }
+
+        setLanguage(geoLanguage)
+      } catch {
+        // Keep the browser-derived or English fallback when geo lookup is unavailable.
+      }
+    }
+
+    resolveGeoLanguage()
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    if (!languageMenuOpen) return undefined
+
+    function closeLanguageMenu(event) {
+      if (languageMenuRef.current?.contains(event.target)) return
+      setLanguageMenuOpen(false)
+    }
+
+    function closeLanguageMenuOnEscape(event) {
+      if (event.key !== 'Escape') return
+      setLanguageMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', closeLanguageMenu)
+    document.addEventListener('focusin', closeLanguageMenu)
+    window.addEventListener('keydown', closeLanguageMenuOnEscape)
+    return () => {
+      document.removeEventListener('mousedown', closeLanguageMenu)
+      document.removeEventListener('focusin', closeLanguageMenu)
+      window.removeEventListener('keydown', closeLanguageMenuOnEscape)
+    }
+  }, [languageMenuOpen])
 
   useEffect(() => {
     if (donateSectionExpanded) setCliSectionExpanded(false)
@@ -561,7 +937,7 @@ function App() {
         },
       })
       saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
-      setDonateSectionExpanded(true)
+      revealDonateSection()
     } catch (error) {
       console.error('Failed to build ZIP archive', error)
       setZipFeedback({ type: 'error', message: messages.zipFailed })
@@ -586,16 +962,42 @@ function App() {
           </div>
 
         <div className="topbarActions">
-          <button
-            className="iconButton languageButton"
-            type="button"
-            onClick={() => setLanguage(nextLanguageOption.id)}
-            aria-label={messages.languageToggleLabel(currentLanguageOption.label, nextLanguageOption.label)}
-            title={messages.languageToggleLabel(currentLanguageOption.label, nextLanguageOption.label)}
-          >
-            <Languages size={16} />
-            <span>{currentLanguageOption.short}</span>
-          </button>
+          <div className="languageMenuWrap" ref={languageMenuRef}>
+            <button
+              className="iconButton languageButton"
+              type="button"
+              onClick={() => setLanguageMenuOpen((current) => !current)}
+              aria-haspopup="menu"
+              aria-expanded={languageMenuOpen}
+              aria-label={messages.languageMenuLabel(currentLanguageOption.label)}
+              title={messages.languageMenuLabel(currentLanguageOption.label)}
+            >
+              <Languages size={16} />
+              <span>{currentLanguageOption.short}</span>
+            </button>
+            {languageMenuOpen && (
+              <div className="languageMenu" role="menu" aria-label={messages.languageListLabel}>
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    className={language === option.id ? 'active' : ''}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={language === option.id}
+                    lang={option.htmlLang}
+                    onClick={() => {
+                      setLanguage(option.id)
+                      persistLanguage(option.id)
+                      setLanguageMenuOpen(false)
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    {language === option.id && <Check size={14} aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             className="iconButton"
             type="button"
@@ -793,7 +1195,7 @@ function App() {
               aria-label={
                 donateSectionExpanded ? messages.donateSectionCollapse : messages.donateSectionExpand
               }
-              onClick={() => setDonateSectionExpanded((current) => !current)}
+              onClick={toggleDonateSection}
             >
               <span className="cliInstallHeading">
                 <span className="cliInstallIcon donateIcon" aria-hidden="true">
@@ -806,7 +1208,13 @@ function App() {
 
             {donateSectionExpanded && (
               <div className="donateSectionBody" id="donate-section-body">
-                <p>{messages.donateDescription}</p>
+                <p className="donateCopy">
+                  <span className="donateCopyLine">{messages.donateIntro}</span>
+                  <span className="donateCopyLine donatePraiseLine">
+                    <SpringScaleText text={donatePraise} locale={currentLanguageOption.htmlLang} />
+                  </span>
+                  <span className="donateCopyLine">{messages.donateRequest}</span>
+                </p>
                 <button className="wechatCopyButton" type="button" onClick={copyWechatId}>
                   <span>{messages.copyWechat}</span>
                 </button>
@@ -921,7 +1329,7 @@ function App() {
                   <p>{messages.seoPrivacyText}</p>
                 </article>
               </div>
-              <nav className="seoLanguageLinks" aria-label="Language versions">
+              <nav className="seoLanguageLinks" aria-label={messages.languageListLabel}>
                 {LANGUAGE_OPTIONS.map((option) => (
                   <button
                     key={option.id}
@@ -929,7 +1337,10 @@ function App() {
                     type="button"
                     lang={option.htmlLang}
                     aria-current={language === option.id ? 'true' : undefined}
-                    onClick={() => setLanguage(option.id)}
+                    onClick={() => {
+                      setLanguage(option.id)
+                      persistLanguage(option.id)
+                    }}
                   >
                     {option.label}
                   </button>

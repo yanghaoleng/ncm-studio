@@ -1,6 +1,6 @@
-# NCM Studio
+# 水下听歌大救星
 
-NCM Studio 是一个本地音乐文件处理工具。网页支持网易云 `.ncm` 与酷狗 `.kgm/.kgma/.vpr` 转 MP3；CLI 目前支持 `.ncm`。它的目标很朴素：方便把自己已经拥有或有权使用的歌曲原文件整理出来，放到自己的离线设备里，比如游泳用的运动耳机、车载播放器、随身播放器等。
+水下听歌大救星是一个本地音乐文件处理工具。网页支持网易云 `.ncm` 与酷狗 `.kgm/.kgma/.vpr` 转 MP3；CLI 目前支持 `.ncm`。它的目标很朴素：方便把自己已经拥有或有权使用的歌曲原文件整理出来，放到自己的离线设备里，比如游泳用的运动耳机、车载播放器、随身播放器等。
 
 请勿将本项目用于侵犯版权、规避付费、批量搬运、传播未授权音乐或其他违法用途。
 
@@ -11,7 +11,7 @@ NCM Studio 是一个本地音乐文件处理工具。网页支持网易云 `.ncm
 - npm：https://www.npmjs.com/package/ncm-studio-cli
 - GitHub 仓库：https://github.com/yanghaoleng/ncm-studio
 
-![NCM Studio 首页截图](docs/assets/homepage.png)
+![水下听歌大救星首页截图](docs/assets/homepage.png)
 
 ## 适合的使用场景
 
@@ -37,8 +37,8 @@ NCM Studio 是一个本地音乐文件处理工具。网页支持网易云 `.ncm
 - 网页右侧提供可折叠的作者打赏入口：点击箭头或 ZIP 打包成功后直接展示默认微信的二维码。
 - 微信和支付宝二维码使用 WebP 质量 90，在保持可识别的前提下降低静态资源体积。
 - 打赏说明支持复制微信号 `yanghaoleng`，复制成功后显示短暂 Toast。
-- 打赏文案强调可随意打赏，用于支持网站后续维护。
-- 提供中文首页、英文 `/en/`、日文 `/ja/` 三个可索引入口，以及 canonical、hreflang、robots.txt、sitemap.xml 和 WebApplication 结构化数据。
+- 打赏说明固定说明工具永久免费和可随意打赏，中间随机展示一条夸赞祝福，结尾邀请用户提出需求；随机句使用 `spring-scale-in` 逐词入场。
+- 提供简体中文、繁体中文、英文 `/en/`、日文 `/ja/` 四种语言入口，以及 canonical、hreflang、robots.txt、sitemap.xml 和 WebApplication 结构化数据。
 - Vercel 将 `/en`、`/en/`、`/ja`、`/ja/` 显式映射到对应静态落地页，避免单页应用回退覆盖多语言内容。
 - 页脚“网站使用说明”使用无下划线文字入口；弹窗内可原地切换中文、英文和日文说明，不触发页面跳转。
 - 页脚“网站使用说明”和“作者主页”统一使用 13px 文字、14px 图标与 6px 图文间距。
@@ -161,7 +161,7 @@ npm test
 - `browser-id3-writer` 负责写入 MP3 ID3v2.3 文本标签与 `APIC` 封面帧。
 - `src/lib/zip.js` 封装 CRC32、ZIP `STORE` 结构、Blob 组合、进度、重名保护和停滞检测。
 - FileSaver 触发浏览器下载。
-- SEO 架构包含中文应用首页、英文和日文静态落地页；基础关键词覆盖网易云/酷狗音乐文件转 MP3、游泳骨传导耳机离线音乐整理等合规场景，后续再依据真实搜索表现调整主次词。
+- SEO 架构包含简体/繁体中文应用页、英文和日文静态落地页；基础关键词覆盖网易云/酷狗音乐文件转 MP3、游泳骨传导耳机离线音乐整理等合规场景，后续再依据真实搜索表现调整主次词。
 
 ## 多平台扩展状态
 
@@ -173,7 +173,7 @@ npm test
 ## 部署
 
 项目可以部署到 Vercel。
-当前正式域名为 `https://ncm.mikeywa.icu`，最新生产部署为 `dpl_9MbUjALQHEFnAAG3C4fRW4adn5f9`。
+当前正式域名为 `https://ncm.mikeywa.icu`，最新生产部署为 `dpl_7hWh8XxNZ5Fy5d7xF2gtmc3ne7eq`。
 Bing 站点所有权通过根路径 `/BingSiteAuth.xml` 验证；站长平台于 2026-08-10 开始准备搜索表现数据，已安排 2026-08-12 复查并继续 Bing、百度、Google 与海外 SEO。
 
 ## 技术栈

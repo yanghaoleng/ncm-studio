@@ -3,30 +3,44 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://ncm.mikeywa.icu/</loc>
-    <lastmod>2026-08-10</lastmod>
+    <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ncm.mikeywa.icu/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://ncm.mikeywa.icu/?lang=zh-Hant" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://ncm.mikeywa.icu/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://ncm.mikeywa.icu/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ncm.mikeywa.icu/" />
+  </url>
+  <url>
+    <loc>https://ncm.mikeywa.icu/?lang=zh-Hant</loc>
+    <lastmod>2026-08-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ncm.mikeywa.icu/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://ncm.mikeywa.icu/?lang=zh-Hant" />
     <xhtml:link rel="alternate" hreflang="en" href="https://ncm.mikeywa.icu/en/" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://ncm.mikeywa.icu/ja/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ncm.mikeywa.icu/" />
   </url>
   <url>
     <loc>https://ncm.mikeywa.icu/en/</loc>
-    <lastmod>2026-08-10</lastmod>
+    <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ncm.mikeywa.icu/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://ncm.mikeywa.icu/?lang=zh-Hant" />
     <xhtml:link rel="alternate" hreflang="en" href="https://ncm.mikeywa.icu/en/" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://ncm.mikeywa.icu/ja/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ncm.mikeywa.icu/" />
   </url>
   <url>
     <loc>https://ncm.mikeywa.icu/ja/</loc>
-    <lastmod>2026-08-10</lastmod>
+    <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ncm.mikeywa.icu/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://ncm.mikeywa.icu/?lang=zh-Hant" />
     <xhtml:link rel="alternate" hreflang="en" href="https://ncm.mikeywa.icu/en/" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://ncm.mikeywa.icu/ja/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ncm.mikeywa.icu/" />

@@ -93,6 +93,8 @@ textarea:focus-visible {
 }
 
 .topbar {
+  position: relative;
+  z-index: 25;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -183,6 +185,65 @@ textarea:focus-visible {
 
 .languageButton span {
   line-height: 1;
+}
+
+.languageMenuWrap {
+  position: relative;
+}
+
+.languageMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 4px;
+  min-width: 138px;
+  padding: 6px;
+  border: 1px solid var(--faint);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  animation: language-menu-in 160ms var(--ease-out) both;
+}
+
+.languageMenu button {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 9px;
+  border-radius: 8px;
+  color: var(--text);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 760;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.languageMenu button:hover,
+.languageMenu button.active {
+  background: var(--surface-2);
+}
+
+.languageMenu button svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+@keyframes language-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .workspace {
@@ -425,7 +486,35 @@ textarea:focus-visible {
   color: var(--muted);
   font-size: 15px;
   line-height: 1.6;
-  white-space: pre-line;
+}
+
+.donateCopyLine {
+  display: block;
+}
+
+.donateCopyLine + .donateCopyLine {
+  margin-top: 8px;
+}
+
+.donatePraiseLine {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.springScaleText {
+  display: inline-block;
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.springScaleWord {
+  display: inline-block;
+  opacity: 0;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotate(0deg) scale(0.7);
+  transform-origin: 50% 55%;
+  white-space: pre;
+  will-change: transform, opacity;
 }
 
 .wechatCopyButton {
@@ -1416,5 +1505,10 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+  }
+
+  .springScaleWord {
+    opacity: 1;
+    transform: none;
   }
 }
