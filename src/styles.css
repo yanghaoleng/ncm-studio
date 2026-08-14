@@ -115,6 +115,12 @@ textarea:focus-visible {
   gap: 12px;
 }
 
+.brandText {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+}
+
 .brandMark,
 .trackIndex,
 .cover {
@@ -125,10 +131,151 @@ textarea:focus-visible {
 .brandMark {
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brandMark:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
   border-radius: 12px;
-  color: #083a8e;
-  background: var(--blue-soft);
-  box-shadow: inset 0 0 34px rgba(255, 255, 255, 0.72);
+}
+
+.brandMarkIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 74%;
+  animation: brand-float-settle 2200ms var(--ease-out) both;
+  will-change: transform;
+}
+
+@keyframes brand-float-settle {
+  0% {
+    transform: translate3d(0, 3px, 0) scaleX(1.035) scaleY(0.95);
+  }
+
+  18% {
+    transform: translate3d(0, -3px, 0) scaleX(0.985) scaleY(1.035);
+  }
+
+  36% {
+    transform: translate3d(0, 2px, 0) scaleX(1.02) scaleY(0.98);
+  }
+
+  54% {
+    transform: translate3d(0, -1.5px, 0) scaleX(0.993) scaleY(1.018);
+  }
+
+  71% {
+    transform: translate3d(0, 0.8px, 0) scaleX(1.008) scaleY(0.992);
+  }
+
+  86% {
+    transform: translate3d(0, -0.35px, 0) scaleX(0.998) scaleY(1.004);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
+  }
+}
+
+.brandTitleReplay {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brandTitleReplay:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+.brandTitleMotion {
+  display: inline-flex;
+}
+
+.brandTitleUnit {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 9.28px, 0);
+  filter: blur(6px);
+  transform-origin: 50% 55%;
+  backface-visibility: hidden;
+  white-space: pre;
+  will-change: transform, opacity, filter;
+  animation: brand-title-soft-blur-in 648ms var(--ease-out) forwards;
+  animation-delay: calc(var(--brand-word-index) * 58ms);
+}
+
+.brandTitleUnitStrong {
+  font-weight: 950;
+}
+
+.brandSubtitle {
+  margin: 0;
+  display: inline-flex;
+  gap: 3px;
+  color: var(--muted);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.brandSubtitleUnit {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+  filter: blur(4px);
+  white-space: pre;
+  will-change: transform, opacity, filter;
+  animation: brand-subtitle-soft-in 420ms var(--ease-out) forwards;
+  animation-delay: calc(1060ms + var(--brand-subtitle-index) * 86ms);
+}
+
+@keyframes brand-title-soft-blur-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 9.28px, 0);
+    filter: blur(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes brand-subtitle-soft-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
 }
 
 .brand h1,
@@ -1410,6 +1557,10 @@ textarea:focus-visible {
     font-size: 20px;
   }
 
+  .brandSubtitle {
+    font-size: 9.5px;
+  }
+
   .queuePanel {
     border-radius: 14px;
     padding: 13px;
@@ -1510,5 +1661,17 @@ textarea:focus-visible {
   .springScaleWord {
     opacity: 1;
     transform: none;
+  }
+
+  .brandTitleUnit {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .brandSubtitleUnit {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }

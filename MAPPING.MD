@@ -3,8 +3,13 @@
 | 俗称 | 学名/位置 | CSS / 组件 | 变量/方法 |
 | --- | --- | --- | --- |
 | 网站名字/标题 | 顶栏品牌、浏览器标题与结构化数据名称 | `.brand h1`, `<title>`, `WebApplication.name` | `I18N.*.appTitle`, `水下听歌大救星` |
+| 亮色网站图标 | 浅色主题 favicon 与标题图标 | `public/favicon-light.webp` | Figma `170:984`，132×132 透明 WebP |
+| 暗色网站图标 | 深色主题 favicon 与标题图标 | `public/favicon-dark.webp` | Figma `170:987`，132×132 透明 WebP |
+| 图标漂浮动画 | 标题图标首次入场和点击重播 | `.brandMarkIcon`, `@keyframes brand-float-settle` | `brandMotionKey`, 仅上下位移与非等比缩放 |
+| 标题柔化入场 | “水 / 下 / 听 / 歌 / 大 / 救 / 星”逐字出现并与图标联动重播，“听歌大救星”加粗 | `.brandTitleMotion`, `.brandTitleUnit`, `.brandTitleUnitStrong`, `@keyframes brand-title-soft-blur-in` | `BRAND_TITLE_PARTS`, `brandMotionKey` |
+| 品牌副标题 | 大标题下方的小字产品名，`NCM` 与 `Studio` 分别入场 | `.brandSubtitle`, `.brandSubtitleUnit`, `@keyframes brand-subtitle-soft-in` | `BRAND_SUBTITLE_PARTS`, `NCM Studio` |
 | 音乐文件转MP3面板 | 页面主工作区 | `.queuePanel.processingPanel` | `tracks`, `addFiles`, `processingTitle` |
-| 文件拖入区 | 无文件时的选择/拖放区域 | `.dropzone.heroDropzone` | `fileInputRef`, `isDragging` |
+| 文件拖入区 | 无文件时的选择/拖放区域，使用无云朵的本地导入图标 | `.dropzone.heroDropzone`, `Upload` | `fileInputRef`, `isDragging`, `strokeWidth=2.8` |
 | 标题与拖入区间距 | 空状态标题和虚线拖入区之间 | `.uploadEmpty`, `.queueHeader.uploadHeader` | `gap`, `margin-bottom` |
 | 支持格式提示 | 标题下方的格式说明 | `.platformImportNote`, `SupportedFormatNote` | `platformImportNote` |
 | 文件列表 | NCM 处理队列 | `.queueTable`, `TrackRow` | `tracks` |
