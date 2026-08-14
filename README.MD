@@ -173,7 +173,7 @@ npm test
 ## 部署
 
 项目可以部署到 Vercel。
-当前正式域名为 `https://ncm.mikeywa.icu`，最新生产部署为 `dpl_7hWh8XxNZ5Fy5d7xF2gtmc3ne7eq`。
+当前正式域名为 `https://ncm.mikeywa.icu`；本轮品牌与打赏动效的功能验收部署为 `dpl_5oFDUzFhfRVAGHkqcvNoE6ZAymFr`。
 Bing 站点所有权通过根路径 `/BingSiteAuth.xml` 验证；站长平台于 2026-08-10 开始准备搜索表现数据，已安排 2026-08-12 复查并继续 Bing、百度、Google 与海外 SEO。
 
 ## 技术栈
