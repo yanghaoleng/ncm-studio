@@ -5,7 +5,7 @@
 | 网站名字/标题 | 顶栏品牌、浏览器标题与结构化数据名称 | `.brand h1`, `<title>`, `WebApplication.name` | `I18N.*.appTitle`, `水下听歌大救星` |
 | 亮色网站图标 | 浅色主题 favicon 与标题图标 | `public/favicon-light.webp` | Figma `170:984`，132×132 透明 WebP |
 | 暗色网站图标 | 深色主题 favicon 与标题图标 | `public/favicon-dark.webp` | Figma `170:987`，132×132 透明 WebP |
-| 图标漂浮动画 | 标题图标首次入场和点击重播 | `.brandMarkIcon`, `@keyframes brand-float-settle` | `brandMotionKey`, 仅上下位移与非等比缩放 |
+| 图标入场与弹跳动画 | 标题图标首次从顶部画面外落入，随后播放 bounce；点击只重播 bounce | `.brandMarkIcon--enter`, `.brandMarkIcon--bounce`, `@keyframes brand-mark-drop-in`, `@keyframes brand-float-settle` | `brandIconMotionMode`, `brandMotionKey` |
 | 标题柔化入场 | “水 / 下 / 听 / 歌 / 大 / 救 / 星”逐字出现并与图标联动重播，“听歌大救星”加粗 | `.brandTitleMotion`, `.brandTitleUnit`, `.brandTitleUnitStrong`, `@keyframes brand-title-soft-blur-in` | `BRAND_TITLE_PARTS`, `brandMotionKey` |
 | 品牌副标题 | 大标题下方的小字产品名，`NCM` 与 `Studio` 分别入场 | `.brandSubtitle`, `.brandSubtitleUnit`, `@keyframes brand-subtitle-soft-in` | `BRAND_SUBTITLE_PARTS`, `NCM Studio` |
 | 音乐文件转MP3面板 | 页面主工作区 | `.queuePanel.processingPanel` | `tracks`, `addFiles`, `processingTitle` |

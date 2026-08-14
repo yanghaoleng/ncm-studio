@@ -583,9 +583,11 @@ function App() {
   const [usageGuideOpen, setUsageGuideOpen] = useState(false)
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
   const [brandMotionKey, setBrandMotionKey] = useState(0)
+  const [brandIconMotionMode, setBrandIconMotionMode] = useState('enter')
   const fileInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
   const wechatCopyTimerRef = useRef(null)
+  const brandIconReplayFrameRef = useRef(null)
   const usageGuideTriggerRef = useRef(null)
   const usageGuideCloseRef = useRef(null)
   const languageMenuRef = useRef(null)
@@ -752,12 +754,25 @@ function App() {
     return () => {
       if (cliCopyTimerRef.current) window.clearTimeout(cliCopyTimerRef.current)
       if (wechatCopyTimerRef.current) window.clearTimeout(wechatCopyTimerRef.current)
+      if (brandIconReplayFrameRef.current) window.cancelAnimationFrame(brandIconReplayFrameRef.current)
       tracksRef.current.forEach((track) => {
         if (track.audioUrl) URL.revokeObjectURL(track.audioUrl)
         if (track.coverUrl) URL.revokeObjectURL(track.coverUrl)
       })
     }
   }, [])
+
+  function replayBrandMotion() {
+    setBrandMotionKey((current) => current + 1)
+    if (brandIconReplayFrameRef.current) window.cancelAnimationFrame(brandIconReplayFrameRef.current)
+    setBrandIconMotionMode('idle')
+    brandIconReplayFrameRef.current = window.requestAnimationFrame(() => {
+      brandIconReplayFrameRef.current = window.requestAnimationFrame(() => {
+        setBrandIconMotionMode('bounce')
+        brandIconReplayFrameRef.current = null
+      })
+    })
+  }
 
   async function copyCliPackageLink() {
     try {
@@ -962,13 +977,12 @@ function App() {
             <button
               className="brandMark"
               type="button"
-              onClick={() => setBrandMotionKey((current) => current + 1)}
+              onClick={replayBrandMotion}
               aria-label={messages.brandReplayLabel}
               title={messages.brandReplayLabel}
             >
               <img
-                key={brandMotionKey}
-                className="brandMarkIcon"
+                className={`brandMarkIcon brandMarkIcon--${brandIconMotionMode}`}
                 src={theme === 'dark' ? '/favicon-dark.webp' : '/favicon-light.webp'}
                 alt=""
                 draggable="false"
@@ -979,7 +993,7 @@ function App() {
                 <button
                   className="brandTitleReplay"
                   type="button"
-                  onClick={() => setBrandMotionKey((current) => current + 1)}
+                  onClick={replayBrandMotion}
                   aria-label={messages.brandReplayLabel}
                   title={messages.brandReplayLabel}
                 >
