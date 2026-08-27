@@ -1,10 +1,14 @@
+import decodeFlac from '@audio/decode-flac'
+import decodeVorbis from '@audio/decode-vorbis'
+import decodeWav from '@audio/decode-wav'
+import { Mp3Encoder } from '@breezystack/lamejs'
 import { attachMp3Tags } from './ncm.js'
 
 const MP3_SAMPLE_RATES = [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000]
-const AUDIO_DECODER_LOADERS = {
-  flac: () => import('@audio/decode-flac'),
-  ogg: () => import('@audio/decode-vorbis'),
-  wav: () => import('@audio/decode-wav'),
+const AUDIO_DECODERS = {
+  flac: decodeFlac,
+  ogg: decodeVorbis,
+  wav: decodeWav,
 }
 
 function hasBytes(bytes, offset, values) {
@@ -29,10 +33,9 @@ function exactArrayBuffer(bytes) {
 }
 
 async function decodeToPcm(audioBytes, sourceCodec) {
-  const loadDecoder = AUDIO_DECODER_LOADERS[sourceCodec]
-  if (loadDecoder) {
-    const decoderModule = await loadDecoder()
-    return decoderModule.default(audioBytes)
+  const decoder = AUDIO_DECODERS[sourceCodec]
+  if (decoder) {
+    return decoder(audioBytes)
   }
 
   const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext
@@ -133,7 +136,6 @@ export async function transcodeToMp3(audioBytes, {
     const right = channels === 2
       ? resampleChannel(decoded.channelData[1], decoded.sampleRate, sampleRate)
       : null
-    const { Mp3Encoder } = await import('@breezystack/lamejs')
     const encoder = new Mp3Encoder(channels, sampleRate, bitrate)
     const chunks = []
     const sampleBlockSize = 1152

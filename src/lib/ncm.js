@@ -1,3 +1,4 @@
+import { ID3Writer } from 'browser-id3-writer'
 import CryptoJS from 'crypto-js'
 import { extensionFromMime, joinArtists, safeFilename } from './format.js'
 
@@ -248,8 +249,6 @@ export async function attachMp3Tags(audioBytes, metadata, coverBytes) {
   if (detectMime(audioBytes) !== 'audio/mpeg') return audioBytes
 
   try {
-    const id3WriterModule = await import('browser-id3-writer')
-    const ID3Writer = id3WriterModule.ID3Writer || id3WriterModule.default
     if (typeof ID3Writer !== 'function') throw new Error('ID3Writer 导出不可用')
 
     const writer = new ID3Writer(exactArrayBuffer(audioBytes))
