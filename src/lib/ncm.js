@@ -112,7 +112,11 @@ function hasBytes(bytes, offset, values) {
 }
 
 function hasMpegFrameHeader(bytes) {
-  return bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0
+  return bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0
+}
+
+function hasAdtsHeader(bytes) {
+  return bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0
 }
 
 function detectMime(audioBytes, metadata = {}) {
@@ -123,6 +127,10 @@ function detectMime(audioBytes, metadata = {}) {
     audioBytes[3] === 0x43
   ) {
     return 'audio/flac'
+  }
+
+  if (hasAdtsHeader(audioBytes)) {
+    return 'audio/aac'
   }
 
   if (hasBytes(audioBytes, 0, [0x49, 0x44, 0x33]) || hasMpegFrameHeader(audioBytes)) {
@@ -146,7 +154,8 @@ function detectMime(audioBytes, metadata = {}) {
   if (format === 'mp3') return 'audio/mpeg'
   if (format === 'ogg') return 'audio/ogg'
   if (format === 'wav') return 'audio/wav'
-  if (format === 'm4a' || format === 'mp4' || format === 'aac') return 'audio/mp4'
+  if (format === 'm4a' || format === 'mp4') return 'audio/mp4'
+  if (format === 'aac') return 'audio/aac'
 
   return 'audio/mpeg'
 }
@@ -294,7 +303,7 @@ export async function convertNcmFile(file, { enrichTags = true, fetchCover = tru
 
   const { audioBytes: rawAudio, coverBytes: embeddedCover } = readAudioSection(bytes, offset, keyBox)
   const mime = detectMime(rawAudio, metadata)
-  const coverBytes = embeddedCover || (enrichTags && fetchCover ? await loadImageBytes(metadata.albumPic) : null)
+  const coverBytes = embeddedCover || (fetchCover ? await loadImageBytes(metadata.albumPic) : null)
   const taggedAudio = enrichTags ? await attachMp3Tags(rawAudio, metadata, coverBytes) : rawAudio
   const extension = extensionFromMime(mime)
   const artist = joinArtists(metadata.artist)
