@@ -1,5 +1,12 @@
 import { attachMp3Tags } from './ncm.js'
 
+const MP3_SAMPLE_RATES = [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000]
+const AUDIO_DECODER_LOADERS = {
+  flac: () => import('@audio/decode-flac'),
+  ogg: () => import('@audio/decode-vorbis'),
+  wav: () => import('@audio/decode-wav'),
+}
+
 function hasBytes(bytes, offset, values) {
   if (offset + values.length > bytes.length) return false
   return values.every((value, index) => bytes[offset + index] === value)
@@ -8,7 +15,8 @@ function hasBytes(bytes, offset, values) {
 export function detectAudioCodec(bytes) {
   if (!bytes?.length) return 'unknown'
   if (hasBytes(bytes, 0, [0x49, 0x44, 0x33])) return 'mp3'
-  if (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) return 'mp3'
+  if (bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0) return 'aac'
+  if (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0) return 'mp3'
   if (hasBytes(bytes, 0, [0x66, 0x4c, 0x61, 0x43])) return 'flac'
   if (hasBytes(bytes, 0, [0x4f, 0x67, 0x67, 0x53])) return 'ogg'
   if (hasBytes(bytes, 0, [0x52, 0x49, 0x46, 0x46]) && hasBytes(bytes, 8, [0x57, 0x41, 0x56, 0x45])) return 'wav'
@@ -18,6 +26,60 @@ export function detectAudioCodec(bytes) {
 
 function exactArrayBuffer(bytes) {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+}
+
+async function decodeToPcm(audioBytes, sourceCodec) {
+  const loadDecoder = AUDIO_DECODER_LOADERS[sourceCodec]
+  if (loadDecoder) {
+    const decoderModule = await loadDecoder()
+    return decoderModule.default(audioBytes)
+  }
+
+  const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext
+  if (!AudioContextClass) {
+    throw new Error(`当前运行环境不支持 ${sourceCodec.toUpperCase()} 音频解码`)
+  }
+
+  const audioContext = new AudioContextClass({ sampleRate: 48000 })
+  try {
+    const decoded = await audioContext.decodeAudioData(exactArrayBuffer(audioBytes))
+    return {
+      channelData: Array.from(
+        { length: decoded.numberOfChannels },
+        (_, index) => decoded.getChannelData(index),
+      ),
+      sampleRate: decoded.sampleRate,
+    }
+  } finally {
+    await audioContext.close().catch(() => {})
+  }
+}
+
+function selectMp3SampleRate(sampleRate) {
+  if (MP3_SAMPLE_RATES.includes(sampleRate)) return sampleRate
+
+  const cappedRate = Math.min(48000, Math.max(8000, sampleRate || 48000))
+  return MP3_SAMPLE_RATES.reduce((best, candidate) => (
+    Math.abs(candidate - cappedRate) < Math.abs(best - cappedRate) ? candidate : best
+  ))
+}
+
+function resampleChannel(channel, sourceRate, targetRate) {
+  if (sourceRate === targetRate) return channel
+
+  const outputLength = Math.max(1, Math.round(channel.length * targetRate / sourceRate))
+  const output = new Float32Array(outputLength)
+  const ratio = sourceRate / targetRate
+
+  for (let index = 0; index < outputLength; index += 1) {
+    const sourcePosition = index * ratio
+    const leftIndex = Math.min(channel.length - 1, Math.floor(sourcePosition))
+    const rightIndex = Math.min(channel.length - 1, leftIndex + 1)
+    const fraction = sourcePosition - leftIndex
+    output[index] = channel[leftIndex] + (channel[rightIndex] - channel[leftIndex]) * fraction
+  }
+
+  return output
 }
 
 function floatChannelToInt16(channel, start, length) {
@@ -41,45 +103,50 @@ function nextPaint() {
 
 export async function transcodeToMp3(audioBytes, {
   title = '',
+  metadata,
+  coverBytes = null,
   bitrate = 320,
   onProgress,
 } = {}) {
   const sourceCodec = detectAudioCodec(audioBytes)
+  const tagMetadata = metadata || { musicName: title }
   if (sourceCodec === 'unknown') {
     throw new Error('解密成功，但无法识别内部音频格式')
   }
 
   if (sourceCodec === 'mp3') {
-    const tagged = await attachMp3Tags(audioBytes, { musicName: title }, null)
+    const tagged = await attachMp3Tags(audioBytes, tagMetadata, coverBytes)
     onProgress?.(100)
     return { audioBytes: tagged, sourceCodec }
   }
 
-  const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext
-  if (!AudioContextClass) {
-    throw new Error('当前浏览器不支持音频转码，请使用最新版 Chrome 或 Edge')
-  }
-
-  const audioContext = new AudioContextClass({ sampleRate: 48000 })
   try {
-    const decoded = await audioContext.decodeAudioData(exactArrayBuffer(audioBytes))
-    const channels = Math.min(2, Math.max(1, decoded.numberOfChannels))
-    const left = decoded.getChannelData(0)
-    const right = channels === 2 ? decoded.getChannelData(1) : null
+    onProgress?.(5)
+    const decoded = await decodeToPcm(audioBytes, sourceCodec)
+    if (!decoded.channelData?.length || !decoded.sampleRate) {
+      throw new Error('音频解码后没有可用的 PCM 数据')
+    }
+
+    const channels = Math.min(2, decoded.channelData.length)
+    const sampleRate = selectMp3SampleRate(decoded.sampleRate)
+    const left = resampleChannel(decoded.channelData[0], decoded.sampleRate, sampleRate)
+    const right = channels === 2
+      ? resampleChannel(decoded.channelData[1], decoded.sampleRate, sampleRate)
+      : null
     const { Mp3Encoder } = await import('@breezystack/lamejs')
-    const encoder = new Mp3Encoder(channels, decoded.sampleRate, bitrate)
+    const encoder = new Mp3Encoder(channels, sampleRate, bitrate)
     const chunks = []
     const sampleBlockSize = 1152
 
-    for (let offset = 0, block = 0; offset < decoded.length; offset += sampleBlockSize, block += 1) {
-      const length = Math.min(sampleBlockSize, decoded.length - offset)
+    for (let offset = 0, block = 0; offset < left.length; offset += sampleBlockSize, block += 1) {
+      const length = Math.min(sampleBlockSize, left.length - offset)
       const leftPcm = floatChannelToInt16(left, offset, length)
       const encoded = channels === 2
         ? encoder.encodeBuffer(leftPcm, floatChannelToInt16(right, offset, length))
         : encoder.encodeBuffer(leftPcm)
       if (encoded.length) chunks.push(Uint8Array.from(encoded))
 
-      onProgress?.(Math.min(98, Math.round(((offset + length) / decoded.length) * 100)))
+      onProgress?.(Math.min(98, 10 + Math.round(((offset + length) / left.length) * 88)))
       if (block > 0 && block % 64 === 0) await nextPaint()
     }
 
@@ -93,12 +160,10 @@ export async function transcodeToMp3(audioBytes, {
       outputOffset += chunk.length
     })
 
-    const tagged = await attachMp3Tags(mp3, { musicName: title }, null)
+    const tagged = await attachMp3Tags(mp3, tagMetadata, coverBytes)
     onProgress?.(100)
-    return { audioBytes: tagged, sourceCodec }
+    return { audioBytes: tagged, sourceCodec, sampleRate }
   } catch (error) {
     throw new Error(`无法将 ${sourceCodec.toUpperCase()} 转换为 MP3：${error.message}`)
-  } finally {
-    await audioContext.close().catch(() => {})
   }
 }

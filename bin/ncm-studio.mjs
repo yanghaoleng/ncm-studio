@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { basename, extname, join, resolve } from 'node:path'
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import process from 'node:process'
-import { convertNcmFile } from '../src/lib/ncm.js'
+import { convertNcmToMp3 } from '../src/lib/ncm-mp3.js'
 
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json')
@@ -176,7 +176,7 @@ async function convert(options) {
         name: basename(sourcePath),
         arrayBuffer: async () => exactArrayBuffer(sourceBytes),
       }
-      const result = await convertNcmFile(file, { fetchCover: !options.noNetwork })
+      const result = await convertNcmToMp3(file, { fetchCover: !options.noNetwork })
       const destination = await destinationFor(outputDirectory, result.filename, options.overwrite)
       await writeFile(destination, result.audioBytes)
 

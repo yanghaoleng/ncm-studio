@@ -31,5 +31,6 @@ export function extensionFromMime(mime) {
   if (mime?.includes('ogg')) return 'ogg'
   if (mime?.includes('wav')) return 'wav'
   if (mime?.includes('mp4')) return 'm4a'
+  if (mime?.includes('aac')) return 'aac'
   return 'mp3'
 }
