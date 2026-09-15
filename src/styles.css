@@ -2,8 +2,9 @@
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  color: #333333;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--page);
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -25,6 +26,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --page: #1f1f22;
   --surface: #2a2a2e;
   --surface-2: #333338;
@@ -84,6 +86,11 @@ textarea:focus-visible {
 
 .app.hasTracks {
   padding-bottom: 22px;
+}
+
+.app.hasTracks .workspace {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .topbar,
@@ -165,6 +172,10 @@ textarea:focus-visible {
 
 .brandMarkIcon--bounce {
   animation: brand-float-settle 2200ms var(--ease-out) both;
+}
+
+.brandMarkIcon--processing {
+  animation: brand-float-settle 1200ms var(--ease-out) infinite;
 }
 
 .brandMarkIcon--idle {
@@ -260,6 +271,42 @@ textarea:focus-visible {
   animation-delay: calc(var(--brand-word-index) * 58ms);
 }
 
+.queueElapsedMotion {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  color: var(--text);
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  line-height: inherit;
+}
+
+.queueElapsedUnit {
+  display: inline-block;
+  visibility: hidden;
+  line-height: inherit;
+  transform: translate3d(0, 9.28px, 0);
+  filter: blur(6px);
+  transform-origin: 50% 55%;
+  backface-visibility: hidden;
+  white-space: pre;
+  will-change: transform, filter;
+  animation: queue-elapsed-soft-blur-in 648ms var(--ease-out) forwards;
+  animation-delay: calc(var(--queue-elapsed-index) * 58ms);
+}
+
+.queueElapsedUnitNumber {
+  transform: translate3d(0, 0, 0);
+  transform-origin: 50% 50%;
+  animation-name: queue-elapsed-number-in;
+}
+
+.queueElapsedUnitEmoji {
+  filter: none;
+  animation-name: queue-elapsed-emoji-in;
+}
+
 .brandTitleUnitStrong {
   font-weight: 950;
 }
@@ -298,6 +345,48 @@ textarea:focus-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
+  }
+}
+
+@keyframes queue-elapsed-soft-blur-in {
+  from {
+    visibility: visible;
+    transform: translate3d(0, 9.28px, 0);
+    filter: blur(6px);
+  }
+
+  to {
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes queue-elapsed-number-in {
+  from {
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    filter: blur(6px);
+  }
+
+  to {
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes queue-elapsed-emoji-in {
+  from {
+    visibility: visible;
+    transform: translate3d(0, 9.28px, 0) scale(0.94);
+    filter: none;
+  }
+
+  to {
+    visibility: visible;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
   }
 }
 
@@ -650,7 +739,7 @@ textarea:focus-visible {
 .donateChevron {
   flex: 0 0 auto;
   color: var(--muted);
-  transition: transform 260ms var(--ease-out), color 180ms ease;
+  transition: transform 800ms cubic-bezier(0.4, 0, 0.2, 1), color 180ms ease;
 }
 
 .donateSectionToggle:hover .donateChevron {
@@ -662,10 +751,17 @@ textarea:focus-visible {
 }
 
 .donateSectionBody {
-  animation: donate-reveal 260ms var(--ease-out) both;
+  display: grid;
+  grid-template-rows: 0fr;
+  animation: donate-reveal 800ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.donateSectionBody > p {
+.donateSectionBodyInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.donateSectionBodyInner > p {
   margin: 12px 0 14px;
   color: var(--muted);
   font-size: 15px;
@@ -795,10 +891,12 @@ textarea:focus-visible {
 
 @keyframes donate-reveal {
   from {
+    grid-template-rows: 0fr;
     opacity: 0;
     transform: translateY(-5px);
   }
   to {
+    grid-template-rows: 1fr;
     opacity: 1;
     transform: translateY(0);
   }
@@ -881,8 +979,7 @@ textarea:focus-visible {
 }
 
 .primaryButton,
-.secondaryButton,
-.bottomBar button {
+.secondaryButton {
   min-height: 42px;
   display: inline-flex;
   align-items: center;
@@ -913,6 +1010,13 @@ textarea:focus-visible {
   opacity: 1;
 }
 
+.zipButton.isDownloaded:disabled {
+  cursor: default;
+  opacity: 1;
+  color: #ffffff;
+  background: #15803d;
+}
+
 .zipButton > svg,
 .zipButton > span:not(.zipButtonFill) {
   position: relative;
@@ -937,7 +1041,6 @@ textarea:focus-visible {
 
 .primaryButton:hover,
 .secondaryButton:hover,
-.bottomBar button:hover,
 .iconButton:hover,
 .rowActions button:hover {
   transform: translateY(-1px);
@@ -1050,6 +1153,20 @@ textarea:focus-visible {
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
 
+.processingPanel.hasTracks {
+  display: flex;
+  min-height: 0;
+  height: auto;
+  max-height: calc(100dvh - 126px);
+  flex-direction: column;
+}
+
+.processingPanel.hasTracks > .queueHeader,
+.processingPanel.hasTracks > .zipAlert,
+.processingPanel.hasTracks > .previewPane {
+  flex: 0 0 auto;
+}
+
 .processingPanel.isDragging {
   border-color: color-mix(in srgb, var(--primary), transparent 42%);
   box-shadow: 0 20px 70px color-mix(in srgb, var(--primary), transparent 84%);
@@ -1100,6 +1217,72 @@ textarea:focus-visible {
   justify-content: flex-end;
 }
 
+.queueControls .zipButton {
+  transform-origin: 50% 100%;
+  will-change: transform, box-shadow;
+  animation: package-button-spring-in 780ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms backwards;
+}
+
+.queueControls .zipButton.hasDownloaded {
+  animation: none;
+}
+
+.queueControls .zipButton.hasDownloaded.isDownloaded {
+  animation: package-button-down-spring 660ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.queueControls .zipButton.hasDownloaded.isDownloadAgain {
+  animation: none;
+}
+
+@keyframes package-button-spring-in {
+  0% {
+    transform: translate3d(0, 24px, 0) scale(0.58);
+    box-shadow: 0 0 0 rgba(8, 58, 142, 0);
+  }
+
+  54% {
+    transform: translate3d(0, -7px, 0) scale(1.09);
+    box-shadow: 0 16px 34px rgba(8, 58, 142, 0.3);
+  }
+
+  74% {
+    transform: translate3d(0, 3px, 0) scale(0.97);
+    box-shadow: 0 8px 20px rgba(8, 58, 142, 0.18);
+  }
+
+  88% {
+    transform: translate3d(0, -1px, 0) scale(1.02);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    box-shadow: 0 0 0 rgba(8, 58, 142, 0);
+  }
+}
+
+@keyframes package-button-down-spring {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  46% {
+    transform: translate3d(0, 9px, 0) scale(0.84);
+  }
+
+  66% {
+    transform: translate3d(0, -2px, 0) scale(1.04);
+  }
+
+  82% {
+    transform: translate3d(0, 1px, 0) scale(0.98);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 .dropOverlay {
   position: absolute;
   inset: 16px;
@@ -1127,8 +1310,16 @@ textarea:focus-visible {
 }
 
 .queueTable {
+  flex: 0 1 auto;
+  min-height: 0;
   display: grid;
-  gap: 8px;
+  align-content: start;
+  gap: 0;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 8px;
 }
 
 .trackRow {
@@ -1138,22 +1329,26 @@ textarea:focus-visible {
   gap: 10px;
   min-height: 68px;
   padding: 9px;
-  border-radius: 12px;
-  border: 1px solid var(--faint);
-  background: var(--surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   animation: row-in 480ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: var(--delay);
   transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
 
-.trackRow:hover,
-.trackRow.selected {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--primary), transparent 58%);
+.trackRow + .trackRow {
+  border-top: 1px solid var(--faint);
+}
+
+.trackRow:hover {
+  transform: none;
+  background: var(--surface-2);
 }
 
 .trackRow.selected {
+  transform: none;
   background: color-mix(in srgb, var(--surface) 86%, var(--blue-soft));
 }
 
@@ -1200,13 +1395,21 @@ textarea:focus-visible {
   font-style: normal;
 }
 
-.formatCell,
-.progressCell {
+.formatCell {
   display: grid;
   gap: 4px;
 }
 
+.progressCell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .progressCell > div {
+  flex: 1 1 auto;
+  min-width: 44px;
   height: 7px;
   overflow: hidden;
   border-radius: 999px;
@@ -1219,6 +1422,13 @@ textarea:focus-visible {
   border-radius: inherit;
   background: #083a8e;
   transition: width 240ms ease;
+}
+
+.progressCell small {
+  flex: 0 0 auto;
+  min-width: 3ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .rowActions {
@@ -1514,58 +1724,6 @@ textarea:focus-visible {
   }
 }
 
-.bottomBar {
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  z-index: 10;
-  display: none;
-  transform: translateX(-50%);
-  width: min(calc(100% - 24px), 680px);
-  min-height: 62px;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 16px;
-  border: 1px solid var(--faint);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(18px);
-}
-
-.bottomBar > div {
-  min-width: 90px;
-  display: grid;
-  gap: 2px;
-  padding-left: 8px;
-}
-
-.bottomBar strong {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.bottomBar span {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.bottomBar button {
-  flex: 1;
-  min-width: 0;
-  padding: 0 10px;
-  color: var(--text);
-  background: var(--surface-2);
-}
-
-.bottomBar .zipButton {
-  min-width: 0;
-}
-
-.bottomBar .zipButtonFill {
-  background: color-mix(in srgb, var(--primary) 24%, transparent);
-}
-
 @keyframes row-in {
   from {
     opacity: 0;
@@ -1580,10 +1738,6 @@ textarea:focus-visible {
 @media (max-width: 760px) {
   .app {
     padding: 16px 12px 20px;
-  }
-
-  .app.hasTracks {
-    padding-bottom: 168px;
   }
 
   .topbar {
@@ -1604,8 +1758,22 @@ textarea:focus-visible {
   }
 
   .queueHeader {
+    position: sticky;
+    top: 0;
+    z-index: 12;
     flex-direction: column;
     align-items: flex-start;
+    margin: -13px -13px 12px;
+    padding: 13px;
+    border-bottom: 1px solid var(--faint);
+    border-radius: 14px 14px 0 0;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .queueHeader .platformImportNote {
+    display: none;
   }
 
   .queueControls {
@@ -1623,19 +1791,31 @@ textarea:focus-visible {
     min-height: 86px;
   }
 
+  .trackRow .trackIndex {
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .trackRow .trackMeta {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .trackRow .formatCell,
   .trackRow .progressCell {
-    grid-column: 2 / 4;
+    display: none;
   }
 
   .rowActions {
-    grid-column: 1 / 4;
-    justify-content: flex-start;
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-content: flex-end;
   }
 
   .previewPane {
     grid-template-columns: 58px minmax(0, 1fr);
-    bottom: 88px;
+    bottom: 12px;
     margin-top: 12px;
   }
 
@@ -1652,10 +1832,6 @@ textarea:focus-visible {
     min-width: 0;
   }
 
-  .bottomBar {
-    display: flex;
-  }
-
   .usageGuideOverlay {
     align-items: end;
     padding: 12px;
@@ -1669,15 +1845,25 @@ textarea:focus-visible {
     padding: 17px;
   }
 
-  .app.hasTracks .copyToast {
-    bottom: 96px;
+  .donateSection {
+    scroll-margin-top: 12px;
   }
 
 }
 
 @media (max-width: 920px) {
+  .app.hasTracks .workspace {
+    flex: 0 0 auto;
+  }
+
   .workspace {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .processingPanel.hasTracks {
+    min-height: 0;
+    height: auto;
+    max-height: calc(100dvh - 122px);
   }
 
   .cliInstallPanel {
@@ -1705,8 +1891,10 @@ textarea:focus-visible {
     transform: none;
   }
 
-  .brandTitleUnit {
+  .brandTitleUnit,
+  .queueElapsedUnit {
     opacity: 1;
+    visibility: visible;
     transform: none;
     filter: none;
   }

@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js'
+import { getConversionConcurrencyProfile } from './concurrency.js'
 import { safeFilename } from './format.js'
 import { transcodeToMp3 } from './audio.js'
 
@@ -408,26 +409,55 @@ async function decryptKgg(bytes, keyMap, onProgress) {
   return output
 }
 
-let legacyKgmModulePromise
-let legacyKgmQueue = Promise.resolve()
+let legacyKgmFactoryPromise
+const legacyKgmModulePool = []
+const legacyKgmModuleWaiters = []
+let legacyKgmModuleCount = 0
+const legacyKgmModuleLimit = getConversionConcurrencyProfile().initial
 
-function getLegacyKgmModule() {
-  if (!legacyKgmModulePromise) {
-    legacyKgmModulePromise = import('@xhacker/kgmwasm/KgmWasmBundle.js')
-      .then((imported) => imported.default())
+function getLegacyKgmFactory() {
+  if (!legacyKgmFactoryPromise) {
+    legacyKgmFactoryPromise = import('@xhacker/kgmwasm/KgmWasmBundle.js')
+      .then((imported) => imported.default)
       .catch((error) => {
-        legacyKgmModulePromise = null
+        legacyKgmFactoryPromise = null
         throw new Error(`酷狗解码模块加载失败：${error.message}`)
       })
   }
-  return legacyKgmModulePromise
+  return legacyKgmFactoryPromise
 }
 
-async function decryptLegacyKgmQueued(bytes, extension, onProgress) {
-  const module = await getLegacyKgmModule()
+async function acquireLegacyKgmModule() {
+  const available = legacyKgmModulePool.pop()
+  if (available) return available
 
-  const pointer = module._malloc(DECRYPTION_BUFFER_SIZE)
+  if (legacyKgmModuleCount < legacyKgmModuleLimit) {
+    legacyKgmModuleCount += 1
+    try {
+      const factory = await getLegacyKgmFactory()
+      return await factory()
+    } catch (error) {
+      legacyKgmModuleCount -= 1
+      const next = legacyKgmModuleWaiters.shift()
+      if (next) acquireLegacyKgmModule().then(next.resolve, next.reject)
+      throw error
+    }
+  }
+
+  return new Promise((resolve, reject) => legacyKgmModuleWaiters.push({ resolve, reject }))
+}
+
+function releaseLegacyKgmModule(module) {
+  const next = legacyKgmModuleWaiters.shift()
+  if (next) next.resolve(module)
+  else legacyKgmModulePool.push(module)
+}
+
+async function decryptLegacyKgmWithModule(bytes, extension, onProgress) {
+  const module = await acquireLegacyKgmModule()
+  let pointer = 0
   try {
+    pointer = module._malloc(DECRYPTION_BUFFER_SIZE)
     const initialSize = Math.min(DECRYPTION_BUFFER_SIZE, bytes.length)
     module.writeArrayToMemory(bytes.subarray(0, initialSize), pointer)
     const headerLength = module.preDec(pointer, initialSize, extension === 'vpr' ? 'vpr' : 'kgm')
@@ -444,14 +474,13 @@ async function decryptLegacyKgmQueued(bytes, extension, onProgress) {
     }
     return output
   } finally {
-    module._free(pointer)
+    if (pointer) module._free(pointer)
+    releaseLegacyKgmModule(module)
   }
 }
 
 export function decryptLegacyKgm(bytes, extension, onProgress) {
-  const task = legacyKgmQueue.then(() => decryptLegacyKgmQueued(bytes, extension, onProgress))
-  legacyKgmQueue = task.catch(() => {})
-  return task
+  return decryptLegacyKgmWithModule(bytes, extension, onProgress)
 }
 
 export function isKugouFileName(name) {
