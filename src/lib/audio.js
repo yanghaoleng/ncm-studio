@@ -3,6 +3,7 @@ import decodeVorbis from '@audio/decode-vorbis'
 import decodeWav from '@audio/decode-wav'
 import { Mp3Encoder } from '@breezystack/lamejs'
 import { attachMp3Tags } from './ncm.js'
+import { safeFilename } from './format.js'
 
 const MP3_SAMPLE_RATES = [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000]
 const AUDIO_DECODERS = {
@@ -167,5 +168,36 @@ export async function transcodeToMp3(audioBytes, {
     return { audioBytes: tagged, sourceCodec, sampleRate }
   } catch (error) {
     throw new Error(`无法将 ${sourceCodec.toUpperCase()} 转换为 MP3：${error.message}`)
+  }
+}
+
+export async function convertFlacToMp3(file, { bitrate, onProgress } = {}) {
+  const audioBytes = new Uint8Array(await file.arrayBuffer())
+  if (detectAudioCodec(audioBytes) !== 'flac') {
+    throw new Error('文件扩展名是 FLAC，但内容不是有效的 FLAC 音频')
+  }
+
+  const title = file.name.replace(/\.flac$/i, '')
+  const metadata = { musicName: title }
+  const transcoded = await transcodeToMp3(audioBytes, {
+    title,
+    metadata,
+    bitrate,
+    onProgress,
+  })
+
+  return {
+    audioBytes: transcoded.audioBytes,
+    rawAudioBytes: audioBytes,
+    coverBytes: null,
+    metadata,
+    mime: 'audio/mpeg',
+    extension: 'mp3',
+    filename: `${safeFilename(title)}.mp3`,
+    title,
+    artist: '',
+    album: '',
+    sourceCodec: transcoded.sourceCodec,
+    sourceFormat: 'flac',
   }
 }

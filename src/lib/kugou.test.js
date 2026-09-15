@@ -176,3 +176,19 @@ for (const extension of ['kgm', 'kgma', 'vpr']) {
     assert.deepEqual(Array.from(result.audioBytes.subarray(0, 3)), [0x49, 0x44, 0x33])
   })
 }
+
+test('converts multiple legacy KuGou files through the module pool', async () => {
+  const extensions = ['kgm', 'kgma', 'vpr']
+  const fixtures = []
+  for (const extension of extensions) fixtures.push(await makeLegacyFixture(extension))
+
+  const results = await Promise.all(fixtures.map((bytes, index) => convertKugouFile({
+    name: `concurrent.${extensions[index]}`,
+    arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  })))
+
+  assert.deepEqual(results.map((result) => result.extension), ['mp3', 'mp3', 'mp3'])
+  results.forEach((result) => {
+    assert.deepEqual(Array.from(result.audioBytes.subarray(0, 3)), [0x49, 0x44, 0x33])
+  })
+})

@@ -18,13 +18,13 @@ import {
   Sun,
   Terminal,
   ThumbsUp,
-  Trash2,
   TriangleAlert,
   Upload,
   WalletCards,
   X,
 } from 'lucide-react'
 import { convertMusicFile, isSupportedMusicFile } from './lib/convert.js'
+import { AdaptiveTaskQueue, getConversionTaskWeight } from './lib/concurrency.js'
 import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
 
@@ -48,35 +48,35 @@ const SPRING_SCALE_IN = {
   initialDelayMax: 400,
 }
 
-const BRAND_TITLE_PARTS = ['水', '下', '听', '歌', '大', '救', '星']
 const BRAND_SUBTITLE_PARTS = ['NCM', 'Studio']
 
 const I18N = {
   zh: {
     appTitle: '水下听歌大救星',
+    brandTitleStrongStart: 2,
     brandReplayLabel: '重播网站标题和游泳圈动画',
     convertError: '转换失败',
     processingTitle: '音乐文件转MP3',
     chooseDropTitle: '选择或拖入音乐文件',
-    chooseDropSubtitle: '支持 NCM、KGM、KGMA、VPR，文件只在本地处理',
+    chooseDropSubtitle: '支持 NCM、FLAC、KGM、KGMA、VPR，文件只在本地处理',
     dropOverlayTitle: '松手继续导入',
     dropOverlaySubtitle: '新文件会自动加入处理队列',
     queueSummary: ({ total, ready, converting }) =>
       `${total} 个文件 · ${ready} 个完成 · ${converting} 个转换中`,
+    queueElapsed: (elapsed) => `🎉 仅耗时 ${elapsed}`,
     chooseMore: '继续添加',
     downloadZip: '打包下载',
+    downloadedZip: '已下载',
+    downloadZipAgain: '再次下载',
     zipping: '打包中',
     zipStalled: '打包进度暂时没有变化。请再等一会；若持续卡住，请刷新后重试，或减少文件数量后分批打包。',
     zipFailed: '打包失败，请重试。若文件较多，建议减少数量后分批打包。',
-    readyDownloadSuffix: '个 MP3 可下载',
-    zipShort: 'ZIP',
-    clearFinished: '清空完成',
     metadataWaiting: '等待解析元数据',
     previewLabel: '试听预览',
     previewEmptyTitle: '选择一首已完成的歌曲',
     previewEmptySubtitle: '完成转换后可在线播放',
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
-    platformImportNote: '支持网易云 NCM 与酷狗 KGM / KGMA / VPR',
+    platformImportNote: '支持 NCM / FLAC 转 MP3 与酷狗 KGM / KGMA / VPR',
     localCliTitle: '安装CLI让AI帮你处理',
     localCliSummary: '让能访问本地目录的 AI 助手直接批量处理 NCM 文件。',
     localCliScenarioTitle: '适用场景',
@@ -115,9 +115,9 @@ const I18N = {
     usageGuideLabel: '网站使用说明',
     usageGuideClose: '关闭网站使用说明',
     seoHeading: '把已有音乐整理到离线设备',
-    seoIntro: '水下听歌大救星在浏览器本地把您有权使用的网易云 NCM 与酷狗音乐文件转换为 MP3，适合游泳骨传导耳机、运动耳机、车载播放器和随身播放器。',
-    seoConvertTitle: 'NCM / KGM 转 MP3',
-    seoConvertText: '支持 NCM、KGM、KGMA、VPR，转换、试听与 ZIP 打包均在浏览器内完成。',
+    seoIntro: '水下听歌大救星在浏览器本地把您有权使用的网易云 NCM、FLAC 与酷狗音乐文件转换为 MP3，适合游泳骨传导耳机、运动耳机、车载播放器和随身播放器。',
+    seoConvertTitle: 'NCM / FLAC / KGM 转 MP3',
+    seoConvertText: '支持 NCM、FLAC、KGM、KGMA、VPR；拖入 FLAC 也会直接转换为 MP3，转换、试听与 ZIP 打包均在浏览器内完成。',
     seoHeadphoneTitle: '游泳骨传导耳机音乐',
     seoHeadphoneText: '可将已购买、已获授权或您有合法使用权的本地音乐整理为 MP3，再导入耳机的离线存储。',
     seoPrivacyTitle: '文件不上传服务器',
@@ -130,30 +130,31 @@ const I18N = {
     languageListLabel: '语言版本',
   },
   'zh-Hant': {
-    appTitle: '水下听歌大救星',
+    appTitle: '水下聽歌大救星',
+    brandTitleStrongStart: 2,
     brandReplayLabel: '重新播放網站標題和游泳圈動畫',
     convertError: '轉換失敗',
     processingTitle: '音樂檔案轉 MP3',
     chooseDropTitle: '選擇或拖入音樂檔案',
-    chooseDropSubtitle: '支援 NCM、KGM、KGMA、VPR，檔案只會在本機處理',
+    chooseDropSubtitle: '支援 NCM、FLAC、KGM、KGMA、VPR，檔案只會在本機處理',
     dropOverlayTitle: '放開即可匯入',
     dropOverlaySubtitle: '新檔案會自動加入處理佇列',
     queueSummary: ({ total, ready, converting }) =>
       `${total} 個檔案 · ${ready} 個完成 · ${converting} 個轉換中`,
+    queueElapsed: (elapsed) => `🎉 僅耗時 ${elapsed}`,
     chooseMore: '繼續新增',
     downloadZip: '打包下載',
+    downloadedZip: '已下載',
+    downloadZipAgain: '再次下載',
     zipping: '正在打包',
     zipStalled: 'ZIP 進度暫時沒有變化。請再等一下；若仍然卡住，請重新整理後再試，或減少檔案數量後分批打包。',
     zipFailed: '打包失敗，請再試一次。若檔案較多，建議減少數量後分批打包。',
-    readyDownloadSuffix: '個 MP3 可下載',
-    zipShort: 'ZIP',
-    clearFinished: '清除完成項目',
     metadataWaiting: '等待解析音樂資訊',
     previewLabel: '試聽預覽',
     previewEmptyTitle: '選擇一首已完成的歌曲',
     previewEmptySubtitle: '完成轉換後可在這裡播放',
     audioLabel: '歌曲試聽播放器，按空白鍵播放或暫停',
-    platformImportNote: '支援網易雲 NCM 與酷狗 KGM / KGMA / VPR',
+    platformImportNote: '支援 NCM / FLAC 轉 MP3 與酷狗 KGM / KGMA / VPR',
     localCliTitle: '安裝 CLI，讓 AI 幫你處理',
     localCliSummary: '讓可存取本機資料夾的 AI 助手批次處理 NCM 檔案。',
     localCliScenarioTitle: '適用情境',
@@ -192,9 +193,9 @@ const I18N = {
     usageGuideLabel: '網站使用說明',
     usageGuideClose: '關閉網站使用說明',
     seoHeading: '把已有音樂整理到離線裝置',
-    seoIntro: '水下听歌大救星會在瀏覽器本機，把你有權使用的網易雲 NCM 與酷狗音樂檔案轉換為 MP3，適合游泳骨傳導耳機、運動耳機、車用播放器和隨身播放器。',
-    seoConvertTitle: 'NCM / KGM 轉 MP3',
-    seoConvertText: '支援 NCM、KGM、KGMA、VPR，轉換、試聽與 ZIP 打包都在瀏覽器內完成。',
+    seoIntro: '水下聽歌大救星會在瀏覽器本機，把你有權使用的網易雲 NCM、FLAC 與酷狗音樂檔案轉換為 MP3，適合游泳骨傳導耳機、運動耳機、車用播放器和隨身播放器。',
+    seoConvertTitle: 'NCM / FLAC / KGM 轉 MP3',
+    seoConvertText: '支援 NCM、FLAC、KGM、KGMA、VPR；拖入 FLAC 也會直接轉換為 MP3，轉換、試聽與 ZIP 打包都在瀏覽器內完成。',
     seoHeadphoneTitle: '游泳骨傳導耳機音樂',
     seoHeadphoneText: '可將已購買、已獲授權，或你有合法使用權的本機音樂整理為 MP3，再匯入耳機的離線儲存空間。',
     seoPrivacyTitle: '檔案不會上傳伺服器',
@@ -207,30 +208,31 @@ const I18N = {
     languageListLabel: '語言版本',
   },
   en: {
-    appTitle: '水下听歌大救星',
+    appTitle: 'Underwater Music Lifesaver',
+    brandTitleStrongStart: 11,
     brandReplayLabel: 'Replay the title and floating swim ring animation',
     convertError: 'Conversion failed',
     processingTitle: 'Music files to MP3',
     chooseDropTitle: 'Choose or drop music files',
-    chooseDropSubtitle: 'Supports NCM, KGM, KGMA and VPR. Files stay on this device.',
+    chooseDropSubtitle: 'Supports NCM, FLAC, KGM, KGMA and VPR. Files stay on this device.',
     dropOverlayTitle: 'Release to import',
     dropOverlaySubtitle: 'New files will join the queue',
     queueSummary: ({ total, ready, converting }) =>
       `${total} files · ${ready} done · ${converting} converting`,
+    queueElapsed: (elapsed) => `🎉 only ${elapsed}`,
     chooseMore: 'Add more',
     downloadZip: 'Download ZIP',
+    downloadedZip: 'Downloaded',
+    downloadZipAgain: 'Download again',
     zipping: 'Zipping',
     zipStalled: 'ZIP progress has paused. Please wait a little longer; if it remains stuck, refresh and retry or package fewer files at a time.',
     zipFailed: 'ZIP creation failed. Please retry, or package fewer files at a time when the list is large.',
-    readyDownloadSuffix: 'MP3 ready',
-    zipShort: 'ZIP',
-    clearFinished: 'Clear done',
     metadataWaiting: 'Waiting for metadata',
     previewLabel: 'Preview',
     previewEmptyTitle: 'Select a converted song',
     previewEmptySubtitle: 'Converted tracks can play here',
     audioLabel: 'Track preview player, press Space to play or pause',
-    platformImportNote: 'Supports NetEase NCM and KuGou KGM / KGMA / VPR',
+    platformImportNote: 'Supports NCM and FLAC to MP3, plus KuGou KGM / KGMA / VPR',
     localCliTitle: 'Install CLI for an AI agent',
     localCliSummary: 'Let an AI assistant with local-folder access process NCM files in batches.',
     localCliScenarioTitle: 'Best for',
@@ -269,13 +271,13 @@ const I18N = {
     usageGuideLabel: 'Website guide',
     usageGuideClose: 'Close website guide',
     seoHeading: 'Prepare your own music for offline devices',
-    seoIntro: '水下听歌大救星 converts legally obtained NetEase NCM and KuGou music files to MP3 locally in your browser for swimming headphones, bone-conduction sports headphones, car stereos, and portable players.',
-    seoConvertTitle: 'NCM and KGM to MP3',
-    seoConvertText: 'Convert, preview, and package NCM, KGM, KGMA, and VPR files without uploading your audio.',
+    seoIntro: 'Underwater Music Lifesaver converts legally obtained NetEase NCM, FLAC, and KuGou music files to MP3 locally in your browser for swimming headphones, bone-conduction sports headphones, car stereos, and portable players.',
+    seoConvertTitle: 'NCM, FLAC and KGM to MP3',
+    seoConvertText: 'Drop in FLAC files to convert them directly to MP3. Convert, preview, and package NCM, FLAC, KGM, KGMA, and VPR files without uploading your audio.',
     seoHeadphoneTitle: 'Music for swimming headphones',
     seoHeadphoneText: 'Prepare files you have purchased, downloaded with permission, or otherwise have the right to use before copying them to offline headphone storage.',
     seoPrivacyTitle: 'Private local processing',
-    seoPrivacyText: 'Audio stays in this device’s memory. 水下听歌大救星 does not provide or distribute music.',
+    seoPrivacyText: 'Audio stays in this device’s memory. Underwater Music Lifesaver does not provide or distribute music.',
     githubLinkLabel: 'GitHub repository',
     authorLinkLabel: 'Author',
     authorLinkAria: 'Open the author homepage',
@@ -284,30 +286,31 @@ const I18N = {
     languageListLabel: 'Language versions',
   },
   ja: {
-    appTitle: '水下听歌大救星',
+    appTitle: '水中音楽の救世主',
+    brandTitleStrongStart: 2,
     brandReplayLabel: 'タイトルと浮き輪のアニメーションをもう一度再生',
     convertError: '変換に失敗しました',
     processingTitle: '音楽ファイルを MP3 へ',
     chooseDropTitle: '音楽ファイルを選択またはドロップ',
-    chooseDropSubtitle: 'NCM、KGM、KGMA、VPR に対応。ファイルは端末内で処理されます',
+    chooseDropSubtitle: 'NCM、FLAC、KGM、KGMA、VPR に対応。ファイルは端末内で処理されます',
     dropOverlayTitle: '離してインポート',
     dropOverlaySubtitle: '新しいファイルはキューに追加されます',
     queueSummary: ({ total, ready, converting }) =>
       `${total} ファイル · ${ready} 件完了 · ${converting} 件変換中`,
+    queueElapsed: (elapsed) => `🎉 わずか ${elapsed}`,
     chooseMore: 'さらに追加',
     downloadZip: 'ZIP ダウンロード',
+    downloadedZip: 'ダウンロード済み',
+    downloadZipAgain: 'もう一度ダウンロード',
     zipping: '圧縮中',
     zipStalled: 'ZIP の進捗が一時停止しています。しばらく待ち、改善しない場合は再読み込み後に再試行するか、ファイル数を減らして分割してください。',
     zipFailed: 'ZIP の作成に失敗しました。再試行するか、ファイル数を減らして分割してください。',
-    readyDownloadSuffix: '個の MP3 がダウンロード可能',
-    zipShort: 'ZIP',
-    clearFinished: '完了をクリア',
     metadataWaiting: 'メタデータ解析待ち',
     previewLabel: '試聴プレビュー',
     previewEmptyTitle: '変換済みの曲を選択',
     previewEmptySubtitle: '変換後ここで再生できます',
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
-    platformImportNote: 'NetEase NCM と KuGou KGM / KGMA / VPR に対応',
+    platformImportNote: 'NCM / FLAC の MP3 変換と KuGou KGM / KGMA / VPR に対応',
     localCliTitle: 'CLI を入れて AI で処理',
     localCliSummary: 'ローカルフォルダへアクセスできる AI で NCM ファイルを一括処理できます。',
     localCliScenarioTitle: '適した場面',
@@ -346,9 +349,9 @@ const I18N = {
     usageGuideLabel: 'サイトの使い方',
     usageGuideClose: 'サイトの使い方を閉じる',
     seoHeading: '手持ちの音楽をオフライン機器へ',
-    seoIntro: '水下听歌大救星は、正当に利用できる NetEase NCM と KuGou の音楽ファイルをブラウザ内で MP3 に変換し、水泳用骨伝導イヤホン、スポーツイヤホン、カーオーディオなどへ整理できます。',
-    seoConvertTitle: 'NCM・KGM を MP3 に変換',
-    seoConvertText: 'NCM、KGM、KGMA、VPR の変換、試聴、ZIP 保存をブラウザ内で完結できます。',
+    seoIntro: '水中音楽の救世主は、正当に利用できる NetEase NCM、FLAC と KuGou の音楽ファイルをブラウザ内で MP3 に変換し、水泳用骨伝導イヤホン、スポーツイヤホン、カーオーディオなどへ整理できます。',
+    seoConvertTitle: 'NCM・FLAC・KGM を MP3 に変換',
+    seoConvertText: 'FLAC をドロップすると MP3 に直接変換できます。NCM、FLAC、KGM、KGMA、VPR の変換、試聴、ZIP 保存をブラウザ内で完結できます。',
     seoHeadphoneTitle: '水泳用骨伝導イヤホンの音楽',
     seoHeadphoneText: '購入済み、許可を得てダウンロード済み、または正当な利用権を持つ音楽を MP3 にしてオフラインストレージへコピーできます。',
     seoPrivacyTitle: 'ファイルをアップロードしない',
@@ -522,9 +525,37 @@ function SpringScaleText({ text, locale }) {
   )
 }
 
+function SoftBlurInText({ text }) {
+  return (
+    <span className="queueElapsedMotion" aria-label={text}>
+      {Array.from(text).map((character, index) => (
+        <span
+          className={`queueElapsedUnit ${index === 0 ? 'queueElapsedUnitEmoji' : ''} ${/\d/u.test(character) ? 'queueElapsedUnitNumber' : ''}`}
+          style={{ '--queue-elapsed-index': index }}
+          aria-hidden="true"
+          key={`${character}-${index}`}
+        >
+          {character}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 function nextRandomIndex(length, currentIndex) {
   if (length <= 1) return 0
   return (currentIndex + 1 + Math.floor(Math.random() * (length - 1))) % length
+}
+
+function formatElapsedDuration(milliseconds, language) {
+  if (!Number.isFinite(milliseconds)) return ''
+  const totalSeconds = Math.max(1, Math.round(milliseconds / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+
+  if (language === 'en') return minutes ? `${minutes}m ${seconds}s` : `${seconds}s`
+  if (language === 'ja') return minutes ? `${minutes}分${seconds}秒` : `${seconds}秒`
+  return minutes ? `${minutes}分 ${seconds}秒` : `${seconds}秒`
 }
 
 function useGsapIntro(deps = []) {
@@ -569,11 +600,13 @@ function App() {
   const [theme, setTheme] = useState('dark')
   const [language, setLanguage] = useState(getInitialLanguage)
   const [tracks, setTracks] = useState([])
+  const [conversionElapsedMs, setConversionElapsedMs] = useState(null)
   const [selectedId, setSelectedId] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isZipping, setIsZipping] = useState(false)
   const [zipProgress, setZipProgress] = useState(0)
   const [zipFeedback, setZipFeedback] = useState(null)
+  const [zipDownloadState, setZipDownloadState] = useState('idle')
   const [cliCopyStatus, setCliCopyStatus] = useState('')
   const [cliSectionExpanded, setCliSectionExpanded] = useState(false)
   const [donateSectionExpanded, setDonateSectionExpanded] = useState(false)
@@ -587,17 +620,29 @@ function App() {
   const fileInputRef = useRef(null)
   const cliCopyTimerRef = useRef(null)
   const wechatCopyTimerRef = useRef(null)
+  const zipDownloadResetTimerRef = useRef(null)
   const brandIconReplayFrameRef = useRef(null)
   const usageGuideTriggerRef = useRef(null)
   const usageGuideCloseRef = useRef(null)
   const languageMenuRef = useRef(null)
+  const donateSectionRef = useRef(null)
   const tracksRef = useRef([])
+  const queueTableRef = useRef(null)
+  const trackRowRefs = useRef(new Map())
+  const previousConvertingIdsRef = useRef(new Set())
+  const queueScrollFrameRef = useRef(null)
+  const conversionStartedAtRef = useRef(null)
+  const hadPendingConversionsRef = useRef(false)
+  const cancelledTrackIdsRef = useRef(new Set())
   const audioRef = useRef(null)
+  const [conversionQueue] = useState(() => new AdaptiveTaskQueue())
   const shouldResolveGeoLanguageRef = useRef(shouldResolveGeoLanguage())
   const rootRef = useGsapIntro([])
   const messages = I18N[language]
   const currentLanguageOption =
     LANGUAGE_OPTIONS.find((option) => option.id === language) || LANGUAGE_OPTIONS[0]
+  const brandTitleParts = useMemo(() => Array.from(messages.appTitle), [messages.appTitle])
+  const brandTitleStrongStart = messages.brandTitleStrongStart ?? 0
   const donatePraise =
     messages.donatePraises[Math.max(0, donatePraiseIndex) % messages.donatePraises.length]
 
@@ -610,9 +655,20 @@ function App() {
     setDonateSectionExpanded((current) => !current)
   }
 
-  function revealDonateSection() {
+  function revealDonateSection({ scrollOnMobile = false } = {}) {
     chooseNextDonatePraise()
     setDonateSectionExpanded(true)
+
+    if (!scrollOnMobile || !window.matchMedia('(max-width: 760px)').matches) return
+
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth'
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        donateSectionRef.current?.scrollIntoView({ behavior, block: 'start' })
+      })
+    })
   }
 
   const selectedTrack = useMemo(
@@ -625,8 +681,10 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    const favicon = document.querySelector('link[data-theme-favicon]')
-    if (favicon) favicon.href = theme === 'dark' ? '/favicon-dark.webp' : '/favicon-light.webp'
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#1f1f22' : '#ffffff',
+    )
   }, [theme])
 
   useEffect(() => {
@@ -698,6 +756,77 @@ function App() {
   }, [tracks])
 
   useEffect(() => {
+    const pending = tracks.some((track) => track.status === 'queued' || track.status === 'converting')
+    if (pending) return
+
+    if (!tracks.length) {
+      conversionStartedAtRef.current = null
+      if (conversionElapsedMs !== null) setConversionElapsedMs(null)
+      return
+    }
+
+    if (conversionStartedAtRef.current !== null) {
+      setConversionElapsedMs(performance.now() - conversionStartedAtRef.current)
+      conversionStartedAtRef.current = null
+    }
+  }, [conversionElapsedMs, tracks])
+
+  useEffect(() => {
+    const convertingIds = tracks
+      .filter((track) => track.status === 'converting')
+      .map((track) => track.id)
+    const newlyStartedIds = convertingIds.filter((id) => !previousConvertingIdsRef.current.has(id))
+    const newlyStartedId = newlyStartedIds[newlyStartedIds.length - 1]
+    previousConvertingIdsRef.current = new Set(convertingIds)
+    if (!newlyStartedId) return
+
+    if (queueScrollFrameRef.current) window.cancelAnimationFrame(queueScrollFrameRef.current)
+    queueScrollFrameRef.current = window.requestAnimationFrame(() => {
+      const container = queueTableRef.current
+      const row = trackRowRefs.current.get(newlyStartedId)
+      queueScrollFrameRef.current = null
+      if (!container || !row) return
+
+      const containerBounds = container.getBoundingClientRect()
+      const rowBounds = row.getBoundingClientRect()
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (rowBounds.top < containerBounds.top) {
+        container.scrollBy({
+          top: rowBounds.top - containerBounds.top - 8,
+          behavior: reducedMotion ? 'auto' : 'smooth',
+        })
+      } else if (rowBounds.bottom > containerBounds.bottom) {
+        container.scrollBy({
+          top: rowBounds.bottom - containerBounds.bottom + 8,
+          behavior: reducedMotion ? 'auto' : 'smooth',
+        })
+      }
+    })
+  }, [tracks])
+
+  useEffect(() => {
+    const pending = tracks.some((track) => track.status === 'queued' || track.status === 'converting')
+    if (!pending && hadPendingConversionsRef.current) setBrandIconMotionMode('idle')
+    hadPendingConversionsRef.current = pending
+  }, [tracks])
+
+  useEffect(() => {
+    const sampleInterval = 1000
+    let expectedSampleTime = performance.now() + sampleInterval
+    const timer = window.setInterval(() => {
+      const now = performance.now()
+      if (document.visibilityState === 'visible') {
+        conversionQueue.observeEventLoopLag(Math.max(0, now - expectedSampleTime))
+      }
+      expectedSampleTime = now + sampleInterval
+    }, sampleInterval)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [conversionQueue])
+
+  useEffect(() => {
     if (!usageGuideOpen) return undefined
 
     const previousOverflow = document.body.style.overflow
@@ -754,7 +883,9 @@ function App() {
     return () => {
       if (cliCopyTimerRef.current) window.clearTimeout(cliCopyTimerRef.current)
       if (wechatCopyTimerRef.current) window.clearTimeout(wechatCopyTimerRef.current)
+      if (zipDownloadResetTimerRef.current) window.clearTimeout(zipDownloadResetTimerRef.current)
       if (brandIconReplayFrameRef.current) window.cancelAnimationFrame(brandIconReplayFrameRef.current)
+      if (queueScrollFrameRef.current) window.cancelAnimationFrame(queueScrollFrameRef.current)
       tracksRef.current.forEach((track) => {
         if (track.audioUrl) URL.revokeObjectURL(track.audioUrl)
         if (track.coverUrl) URL.revokeObjectURL(track.coverUrl)
@@ -823,6 +954,7 @@ function App() {
   }
 
   async function convertTrack(track, options = {}) {
+    if (cancelledTrackIdsRef.current.has(track.id)) return
     setTracks((current) =>
       current.map((item) =>
         item.id === track.id
@@ -851,7 +983,7 @@ function App() {
           ))
         },
       })
-      clearInterval(pulse)
+      if (cancelledTrackIdsRef.current.has(track.id)) return
       const archiveCrc32 = calculateCrc32(result.audioBytes)
       const audioBlob = new Blob([result.audioBytes], { type: result.mime })
       const audioUrl = URL.createObjectURL(audioBlob)
@@ -879,7 +1011,7 @@ function App() {
 
       if (options.select !== false) setSelectedId(track.id)
     } catch (error) {
-      clearInterval(pulse)
+      if (cancelledTrackIdsRef.current.has(track.id)) return
       setTracks((current) =>
         current.map((item) =>
           item.id === track.id
@@ -887,17 +1019,46 @@ function App() {
             : item,
         ),
       )
+    } finally {
+      clearInterval(pulse)
     }
+  }
+
+  function enqueueTrackConversion(track, options = {}) {
+    cancelledTrackIdsRef.current.delete(track.id)
+    const queued = conversionQueue.enqueue(
+      track.id,
+      () => convertTrack(track, options),
+      { weight: getConversionTaskWeight(track.file?.size) },
+    )
+    if (!queued) return
+
+    if (conversionStartedAtRef.current === null) {
+      conversionStartedAtRef.current = performance.now()
+      setConversionElapsedMs(null)
+    }
+
+    setTracks((current) => current.map((item) =>
+      item.id === track.id && item.status === 'error'
+        ? { ...item, status: 'queued', progress: 0, error: '' }
+        : item,
+    ))
   }
 
   function addFiles(fileList) {
     const files = Array.from(fileList || []).filter((file) => isSupportedMusicFile(file.name))
     if (!files.length) return
 
+    if (zipDownloadResetTimerRef.current) {
+      window.clearTimeout(zipDownloadResetTimerRef.current)
+      zipDownloadResetTimerRef.current = null
+    }
+    setZipDownloadState('idle')
+
     const nextTracks = files.map((file) => ({
       id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
       file,
-      title: file.name.replace(/\.(?:ncm|kgm|kgma|vpr)$/i, ''),
+      title: file.name.replace(/\.(?:ncm|flac|kgm|kgma|vpr)$/i, ''),
       artist: '',
       album: '',
       status: 'queued',
@@ -909,28 +1070,18 @@ function App() {
     setSelectedId(nextTracks[0]?.id)
 
     nextTracks.forEach((track, index) => {
-      setTimeout(() => convertTrack(track, { select: index === 0 }), index * 220)
+      enqueueTrackConversion(track, { select: index === 0 })
     })
   }
 
   function removeTrack(trackId) {
+    cancelledTrackIdsRef.current.add(trackId)
+    conversionQueue.cancel(trackId)
     setTracks((current) => {
       const target = current.find((track) => track.id === trackId)
       if (target?.audioUrl) URL.revokeObjectURL(target.audioUrl)
       if (target?.coverUrl) URL.revokeObjectURL(target.coverUrl)
       return current.filter((track) => track.id !== trackId)
-    })
-  }
-
-  function clearFinished() {
-    setTracks((current) => {
-      current.forEach((track) => {
-        if (track.status === 'ready') {
-          if (track.audioUrl) URL.revokeObjectURL(track.audioUrl)
-          if (track.coverUrl) URL.revokeObjectURL(track.coverUrl)
-        }
-      })
-      return current.filter((track) => track.status !== 'ready')
     })
   }
 
@@ -942,6 +1093,11 @@ function App() {
   async function downloadZip() {
     const readyTracks = tracks.filter((track) => track.status === 'ready' && track.audioBlob)
     if (!readyTracks.length) return
+
+    if (zipDownloadResetTimerRef.current) {
+      window.clearTimeout(zipDownloadResetTimerRef.current)
+      zipDownloadResetTimerRef.current = null
+    }
 
     setIsZipping(true)
     setZipProgress(0)
@@ -958,7 +1114,12 @@ function App() {
         },
       })
       saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
-      revealDonateSection()
+      setZipDownloadState('downloaded')
+      zipDownloadResetTimerRef.current = window.setTimeout(() => {
+        setZipDownloadState('again')
+        zipDownloadResetTimerRef.current = null
+      }, 6000)
+      revealDonateSection({ scrollOnMobile: true })
     } catch (error) {
       console.error('Failed to build ZIP archive', error)
       setZipFeedback({ type: 'error', message: messages.zipFailed })
@@ -969,6 +1130,12 @@ function App() {
 
   const readyCount = tracks.filter((track) => track.status === 'ready').length
   const convertingCount = tracks.filter((track) => track.status === 'converting').length
+  const hasPendingConversions = tracks.some(
+    (track) => track.status === 'queued' || track.status === 'converting',
+  )
+  const formattedConversionElapsed = conversionElapsedMs === null
+    ? ''
+    : formatElapsedDuration(conversionElapsedMs, language)
 
   return (
     <div className={`app ${tracks.length ? 'hasTracks' : ''}`} ref={rootRef}>
@@ -982,7 +1149,7 @@ function App() {
               title={messages.brandReplayLabel}
             >
               <img
-                className={`brandMarkIcon brandMarkIcon--${brandIconMotionMode}`}
+                className={`brandMarkIcon ${hasPendingConversions ? 'brandMarkIcon--processing' : `brandMarkIcon--${brandIconMotionMode}`}`}
                 src={theme === 'dark' ? '/favicon-dark.webp' : '/favicon-light.webp'}
                 alt=""
                 draggable="false"
@@ -994,15 +1161,16 @@ function App() {
                   className="brandTitleReplay"
                   type="button"
                   onClick={replayBrandMotion}
-                  aria-label={messages.brandReplayLabel}
+                  aria-label={`${messages.appTitle}。${messages.brandReplayLabel}`}
                   title={messages.brandReplayLabel}
                 >
-                  <span key={brandMotionKey} className="brandTitleMotion" aria-hidden="true">
-                    {BRAND_TITLE_PARTS.map((part, index) => (
+                  <span className="visuallyHidden">{messages.appTitle}</span>
+                  <span key={`${language}-${brandMotionKey}`} className="brandTitleMotion" aria-hidden="true">
+                    {brandTitleParts.map((part, index) => (
                       <span
-                        className={`brandTitleUnit ${index >= 2 ? 'brandTitleUnitStrong' : ''}`}
+                        className={`brandTitleUnit ${index >= brandTitleStrongStart ? 'brandTitleUnitStrong' : ''}`}
                         style={{ '--brand-word-index': index }}
-                        key={part}
+                        key={`${part}-${index}`}
                       >
                         {part}
                       </span>
@@ -1096,7 +1264,7 @@ function App() {
             className="filePickerInput"
             type="file"
             multiple
-            accept=".ncm,.kgm,.kgma,.vpr"
+            accept=".ncm,.flac,.kgm,.kgma,.vpr"
             onChange={(event) => {
               addFiles(event.target.files)
               event.target.value = ''
@@ -1137,11 +1305,20 @@ function App() {
                   <h2>{messages.processingTitle}</h2>
                   <SupportedFormatNote messages={messages} />
                   <p>
-                    {messages.queueSummary({
+                    <span>{messages.queueSummary({
                       total: tracks.length,
                       ready: readyCount,
                       converting: convertingCount,
-                    })}
+                    })}</span>
+                    {formattedConversionElapsed && (
+                      <>
+                        <span aria-hidden="true"> · </span>
+                        <SoftBlurInText
+                          key={`${language}-${conversionElapsedMs}`}
+                          text={messages.queueElapsed(formattedConversionElapsed)}
+                        />
+                      </>
+                    )}
                   </p>
                 </div>
                 <div className="queueControls">
@@ -1149,18 +1326,30 @@ function App() {
                     <Upload size={17} strokeWidth={2.8} />
                     {messages.chooseMore}
                   </button>
-                  <button
-                    className={`primaryButton zipButton ${isZipping ? 'isZipping' : ''}`}
-                    type="button"
-                    onClick={downloadZip}
-                    disabled={!readyCount || isZipping}
-                    aria-busy={isZipping}
-                    style={{ '--zip-progress': `${zipProgress}%` }}
-                  >
-                    {isZipping && <span className="zipButtonFill" aria-hidden="true" />}
-                    <Archive size={17} />
-                    <span>{isZipping ? `${messages.zipping} ${zipProgress}%` : messages.downloadZip}</span>
-                  </button>
+                  {!hasPendingConversions && readyCount > 0 && (
+                    <button
+                      className={`${zipDownloadState === 'again' ? 'secondaryButton' : 'primaryButton'} zipButton ${isZipping ? 'isZipping' : ''} ${zipDownloadState !== 'idle' ? 'hasDownloaded' : ''} ${zipDownloadState === 'downloaded' ? 'isDownloaded' : ''} ${zipDownloadState === 'again' ? 'isDownloadAgain' : ''}`}
+                      type="button"
+                      onClick={downloadZip}
+                      disabled={isZipping || zipDownloadState === 'downloaded'}
+                      aria-busy={isZipping}
+                      style={{ '--zip-progress': `${zipProgress}%` }}
+                    >
+                      {isZipping && <span className="zipButtonFill" aria-hidden="true" />}
+                      {zipDownloadState === 'downloaded' && !isZipping
+                        ? <Check size={17} strokeWidth={3} />
+                        : <Archive size={17} />}
+                      <span aria-live="polite">
+                        {isZipping
+                          ? `${messages.zipping} ${zipProgress}%`
+                          : zipDownloadState === 'downloaded'
+                            ? messages.downloadedZip
+                            : zipDownloadState === 'again'
+                              ? messages.downloadZipAgain
+                              : messages.downloadZip}
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1171,7 +1360,7 @@ function App() {
                 </div>
               )}
 
-              <div className="queueTable">
+              <div className="queueTable" ref={queueTableRef}>
                 {tracks.map((track, index) => (
                   <TrackRow
                     key={track.id}
@@ -1179,10 +1368,14 @@ function App() {
                     index={index}
                     selected={selectedTrack?.id === track.id}
                     onSelect={() => setSelectedId(track.id)}
-                    onConvert={() => convertTrack(track)}
+                    onConvert={() => enqueueTrackConversion(track)}
                     onDownload={() => downloadTrack(track)}
                     onRemove={() => removeTrack(track.id)}
                     messages={messages}
+                    rowRef={(node) => {
+                      if (node) trackRowRefs.current.set(track.id, node)
+                      else trackRowRefs.current.delete(track.id)
+                    }}
                   />
                 ))}
               </div>
@@ -1249,7 +1442,7 @@ function App() {
           </section>
 
           <div className="sidePanelDivider" />
-          <section className="donateSection">
+          <section className="donateSection" ref={donateSectionRef}>
             <button
               className="donateSectionToggle"
               type="button"
@@ -1271,46 +1464,48 @@ function App() {
 
             {donateSectionExpanded && (
               <div className="donateSectionBody" id="donate-section-body">
-                <p className="donateCopy">
-                  <span className="donateCopyLine">{messages.donateIntro}</span>
-                  <span className="donateCopyLine donatePraiseLine">
-                    <SpringScaleText text={donatePraise} locale={currentLanguageOption.htmlLang} />
-                  </span>
-                  <span className="donateCopyLine">{messages.donateRequest}</span>
-                </p>
-                <button className="wechatCopyButton" type="button" onClick={copyWechatId}>
-                  <span>{messages.copyWechat}</span>
-                </button>
-                <div className="donatePaymentPanel" id="donate-payment-panel">
-                  <div className="donateTabs" role="tablist" aria-label={messages.donateTitle}>
-                    <button
-                      className={donateMethod === 'alipay' ? 'active alipay' : 'alipay'}
-                      type="button"
-                      role="tab"
-                      aria-selected={donateMethod === 'alipay'}
-                      onClick={() => setDonateMethod('alipay')}
-                    >
-                      <WalletCards size={14} />
-                      <span>{messages.donateAlipay}</span>
-                    </button>
-                    <button
-                      className={donateMethod === 'wechat' ? 'active wechat' : 'wechat'}
-                      type="button"
-                      role="tab"
-                      aria-selected={donateMethod === 'wechat'}
-                      onClick={() => setDonateMethod('wechat')}
-                    >
-                      <MessageCircle size={14} />
-                      <span>{messages.donateWechat}</span>
-                    </button>
-                  </div>
-                  <div className="donateQrFrame" role="tabpanel">
-                    <img
-                      src={donateMethod === 'alipay' ? '/donate/alipay-qr.webp' : '/donate/wechat-qr.webp'}
-                      alt={messages.donateQrAlt(
-                        donateMethod === 'alipay' ? messages.donateAlipay : messages.donateWechat,
-                      )}
-                    />
+                <div className="donateSectionBodyInner">
+                  <p className="donateCopy">
+                    <span className="donateCopyLine">{messages.donateIntro}</span>
+                    <span className="donateCopyLine donatePraiseLine">
+                      <SpringScaleText text={donatePraise} locale={currentLanguageOption.htmlLang} />
+                    </span>
+                    <span className="donateCopyLine">{messages.donateRequest}</span>
+                  </p>
+                  <button className="wechatCopyButton" type="button" onClick={copyWechatId}>
+                    <span>{messages.copyWechat}</span>
+                  </button>
+                  <div className="donatePaymentPanel" id="donate-payment-panel">
+                    <div className="donateTabs" role="tablist" aria-label={messages.donateTitle}>
+                      <button
+                        className={donateMethod === 'alipay' ? 'active alipay' : 'alipay'}
+                        type="button"
+                        role="tab"
+                        aria-selected={donateMethod === 'alipay'}
+                        onClick={() => setDonateMethod('alipay')}
+                      >
+                        <WalletCards size={14} />
+                        <span>{messages.donateAlipay}</span>
+                      </button>
+                      <button
+                        className={donateMethod === 'wechat' ? 'active wechat' : 'wechat'}
+                        type="button"
+                        role="tab"
+                        aria-selected={donateMethod === 'wechat'}
+                        onClick={() => setDonateMethod('wechat')}
+                      >
+                        <MessageCircle size={14} />
+                        <span>{messages.donateWechat}</span>
+                      </button>
+                    </div>
+                    <div className="donateQrFrame" role="tabpanel">
+                      <img
+                        src={donateMethod === 'alipay' ? '/donate/alipay-qr.webp' : '/donate/wechat-qr.webp'}
+                        alt={messages.donateQrAlt(
+                          donateMethod === 'alipay' ? messages.donateAlipay : messages.donateWechat,
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1414,31 +1609,6 @@ function App() {
         </div>
       )}
 
-      {!!tracks.length && (
-        <div className="bottomBar" data-enter>
-          <div>
-            <strong>{readyCount}</strong>
-            <span>{messages.readyDownloadSuffix}</span>
-          </div>
-          <button
-            className={`zipButton ${isZipping ? 'isZipping' : ''}`}
-            type="button"
-            onClick={downloadZip}
-            disabled={!readyCount || isZipping}
-            aria-busy={isZipping}
-            style={{ '--zip-progress': `${zipProgress}%` }}
-          >
-            {isZipping && <span className="zipButtonFill" aria-hidden="true" />}
-            <Archive size={17} />
-            <span>{isZipping ? `${messages.zipShort} ${zipProgress}%` : messages.zipShort}</span>
-          </button>
-          <button type="button" onClick={clearFinished} disabled={!readyCount}>
-            <Trash2 size={17} />
-            {messages.clearFinished}
-          </button>
-        </div>
-      )}
-
       {wechatCopyStatus && (
         <div
           className={`copyToast ${wechatCopyStatus}`}
@@ -1464,11 +1634,12 @@ function SupportedFormatNote({ messages }) {
   )
 }
 
-function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onRemove, messages }) {
+function TrackRow({ track, index, selected, onSelect, onConvert, onDownload, onRemove, messages, rowRef }) {
   const canDownload = track.status === 'ready' && track.audioBlob
 
   return (
     <div
+      ref={rowRef}
       className={`trackRow ${selected ? 'selected' : ''}`}
       onClick={onSelect}
       style={{ '--delay': `${Math.min(index * 35, 280)}ms` }}
