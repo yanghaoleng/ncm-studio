@@ -1136,6 +1136,8 @@ textarea:focus-visible {
 }
 
 .queueHeader .platformImportNote {
+  position: relative;
+  z-index: 30;
   margin: 4px 0 0;
   padding: 0;
   color: var(--muted);
@@ -1143,6 +1145,24 @@ textarea:focus-visible {
   line-height: 1.55;
   text-align: left;
 }
+
+.appleMusicImportHint { position: relative; display: inline-flex; }
+.appleMusicImportTrigger {
+  appearance: none; border: 0; padding: 0; color: inherit; background: transparent;
+  font: inherit; text-decoration: underline; text-decoration-style: dotted;
+  text-underline-offset: 3px; cursor: help;
+}
+.appleMusicImportTooltip {
+  position: absolute; z-index: 2147483647; left: 0; top: calc(100% + 10px); width: min(360px, calc(100vw - 48px));
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); background: var(--surface); box-shadow: var(--shadow);
+  font-size: 12px; line-height: 1.6; text-align: left; opacity: 0; visibility: hidden;
+  transform: translateY(4px); transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+  pointer-events: none;
+}
+.appleMusicImportHint:hover .appleMusicImportTooltip,
+.appleMusicImportTrigger:focus + .appleMusicImportTooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+.qqMusicUnsupported { color: var(--muted); }
 
 .queueHeader .platformImportNote + p {
   margin-top: 4px;

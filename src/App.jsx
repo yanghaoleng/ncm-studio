@@ -76,7 +76,9 @@ const I18N = {
     previewEmptyTitle: '选择一首已完成的歌曲',
     previewEmptySubtitle: '完成转换后可在线播放',
     audioLabel: '歌曲试听播放器，按空格播放或暂停',
-    platformImportNote: '支持 NCM / FLAC 转 MP3 与酷狗 KGM / KGMA / VPR',
+    platformImportNote: 'Apple Music 歌单导入方法 · 暂不支持 QQ 音乐',
+    appleMusicImportLabel: 'Apple Music 歌单导入方法',
+    qqMusicUnsupportedLabel: '暂不支持 QQ 音乐',
     localCliTitle: '安装CLI让AI帮你处理',
     localCliSummary: '让能访问本地目录的 AI 助手直接批量处理 NCM 文件。',
     localCliScenarioTitle: '适用场景',
@@ -154,7 +156,9 @@ const I18N = {
     previewEmptyTitle: '選擇一首已完成的歌曲',
     previewEmptySubtitle: '完成轉換後可在這裡播放',
     audioLabel: '歌曲試聽播放器，按空白鍵播放或暫停',
-    platformImportNote: '支援 NCM / FLAC 轉 MP3 與酷狗 KGM / KGMA / VPR',
+    platformImportNote: 'Apple Music 歌單匯入方法 · 暫不支援 QQ 音樂',
+    appleMusicImportLabel: 'Apple Music 歌單匯入方法',
+    qqMusicUnsupportedLabel: '暫不支援 QQ 音樂',
     localCliTitle: '安裝 CLI，讓 AI 幫你處理',
     localCliSummary: '讓可存取本機資料夾的 AI 助手批次處理 NCM 檔案。',
     localCliScenarioTitle: '適用情境',
@@ -232,7 +236,9 @@ const I18N = {
     previewEmptyTitle: 'Select a converted song',
     previewEmptySubtitle: 'Converted tracks can play here',
     audioLabel: 'Track preview player, press Space to play or pause',
-    platformImportNote: 'Supports NCM and FLAC to MP3, plus KuGou KGM / KGMA / VPR',
+    platformImportNote: 'Apple Music playlist import · QQ Music is not supported yet',
+    appleMusicImportLabel: 'Apple Music playlist import',
+    qqMusicUnsupportedLabel: 'QQ Music is not supported yet',
     localCliTitle: 'Install CLI for an AI agent',
     localCliSummary: 'Let an AI assistant with local-folder access process NCM files in batches.',
     localCliScenarioTitle: 'Best for',
@@ -310,7 +316,9 @@ const I18N = {
     previewEmptyTitle: '変換済みの曲を選択',
     previewEmptySubtitle: '変換後ここで再生できます',
     audioLabel: '楽曲プレビュープレイヤー。スペースで再生/一時停止',
-    platformImportNote: 'NCM / FLAC の MP3 変換と KuGou KGM / KGMA / VPR に対応',
+    platformImportNote: 'Apple Music プレイリストの取り込み · QQ Music は未対応',
+    appleMusicImportLabel: 'Apple Music プレイリストの取り込み',
+    qqMusicUnsupportedLabel: 'QQ Music は未対応',
     localCliTitle: 'CLI を入れて AI で処理',
     localCliSummary: 'ローカルフォルダへアクセスできる AI で NCM ファイルを一括処理できます。',
     localCliScenarioTitle: '適した場面',
@@ -1629,7 +1637,14 @@ function App() {
 function SupportedFormatNote({ messages }) {
   return (
     <p className="platformImportNote">
-      <span>{messages.platformImportNote}</span>
+      <span className="appleMusicImportHint">
+        <button type="button" className="appleMusicImportTrigger" aria-label={messages.appleMusicImportLabel}>
+          {messages.appleMusicImportLabel}
+        </button>
+        <span className="appleMusicImportTooltip" role="tooltip">{messages.appleMusicText}</span>
+      </span>
+      <span className="platformImportDivider" aria-hidden="true"> · </span>
+      <span className="qqMusicUnsupported">{messages.qqMusicUnsupportedLabel}</span>
     </p>
   )
 }
