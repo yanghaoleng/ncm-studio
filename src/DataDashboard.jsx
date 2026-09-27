@@ -9,6 +9,20 @@ function formatNumber(value) {
   return new Intl.NumberFormat('zh-CN').format(value || 0)
 }
 
+function formatDuration(milliseconds) {
+  if (!milliseconds) return '—'
+  if (milliseconds < 1000) return `${milliseconds} 毫秒`
+  const seconds = milliseconds / 1000
+  return `${seconds >= 10 ? seconds.toFixed(0) : seconds.toFixed(1)} 秒`
+}
+
+function actionSummary(actions, labels) {
+  return Object.entries(actions || {})
+    .filter(([, count]) => count)
+    .map(([action, count]) => `${labels[action] || action} ${formatNumber(count)}`)
+    .join(' · ') || '暂无动作'
+}
+
 function formatDate(value, withTime = false) {
   if (!value) return '暂无'
   return new Intl.DateTimeFormat('zh-CN', {
@@ -157,6 +171,7 @@ function Dashboard({ token, onExpired }) {
   if (status === 'error') return <main className="dashboardState"><strong>数据暂时没有读到</strong><button onClick={() => setPeriod((value) => value === 30 ? 29 : 30)}>重试</button></main>
 
   const k = data.kpis
+  const d = data.depth || {}
   const conversionSentence = k.conversionAttempts
     ? `近 ${period} 天完成 ${formatNumber(k.conversionSuccesses)} 次转换，成功率 ${k.conversionRate}%。`
     : `近 ${period} 天还没有收到转换事件，上线后的真实数据会从这里开始累积。`
@@ -164,7 +179,7 @@ function Dashboard({ token, onExpired }) {
     ? `${formatNumber(k.downloads)} 次下载来自 ${formatNumber(k.downloadingVisitors)} 位匿名访客。`
     : '目前没有下载记录，不能据此判断用户是否完成了最终任务。'
 
-  const sections = [['summary','结论'],['trend','趋势'],['formats','格式'],['quality','数据说明']]
+  const sections = [['summary','结论'],['trend','趋势'],['depth','使用深度'],['formats','格式'],['quality','数据说明']]
   return <div className="dashboard">
     <header className="dashboardHeader">
       <div><p className="eyebrow">NCM Studio · 产品数据</p><h1>转换体验看板</h1><p>北京时间 · 匿名聚合 · 更新于 {formatDate(data.freshAt, true)}</p></div>
@@ -176,7 +191,7 @@ function Dashboard({ token, onExpired }) {
       <h2>现在发生了什么</h2>
       <p className="finding">{conversionSentence}</p>
       <p className="finding">{downloadSentence}</p>
-      <p className="finding muted">访客已按日期合并历史访问与腾讯云新采集数据；转换、下载等行为只从新采集开始统计。</p>
+      <p className="finding muted">访客口径包含历史访问与新采集；转换、下载和使用深度只从行为采集开始统计。</p>
       <div className="metricStrip">
         <div><span>匿名访客</span><strong>{formatNumber(k.visitors)}</strong><small>{formatNumber(k.sessions)} 个会话</small></div>
         <div><span>导入文件</span><strong>{formatNumber(k.filesAdded)}</strong><small>{formatNumber(k.fileAddingVisitors)} 位访客</small></div>
@@ -192,14 +207,32 @@ function Dashboard({ token, onExpired }) {
       <TrendChart rows={data.daily} metric={tab} />
     </section>
 
-    <section id="formats" ref={(node) => { sectionRefs.current[2] = node }} className="analysisSection reveal">
+    <section id="depth" ref={(node) => { sectionRefs.current[2] = node }} className="analysisSection reveal">
+      <div className="sectionHeading"><div><h2>使用深度</h2><p>把入口点击、实际上传、转换耗时与后续动作串起来看；只统计行为采集开始后的事件。</p></div></div>
+      <div className="depthGrid">
+        <div className="depthMetric"><span>上传入口点击</span><strong>{formatNumber(d.uploadClicks)}</strong><small>{formatNumber(d.uploadClickVisitors)} 位访客点击过入口</small></div>
+        <div className="depthMetric"><span>实际上传</span><strong>{formatNumber(d.filesAdded)}</strong><small>{formatNumber(d.uploadBatches)} 批，{formatNumber(d.uploadBatchVisitors)} 位访客</small></div>
+        <div className="depthMetric"><span>单次上传文件数</span><strong>{d.avgFilesPerUpload ? d.avgFilesPerUpload : '—'}</strong><small>{d.maxFilesPerUpload ? `最高 ${formatNumber(d.maxFilesPerUpload)} 个` : '等待上传批次'}</small></div>
+        <div className="depthMetric"><span>转换耗时 P50</span><strong>{formatDuration(d.conversionDurationP50Ms)}</strong><small>{d.conversionDurationCount ? `平均 ${formatDuration(d.conversionDurationAvgMs)} · ${formatNumber(d.conversionDurationCount)} 条` : '等待成功转换'}</small></div>
+        <div className="depthMetric"><span>下载 CTR</span><strong>{d.downloadCtr ? `${d.downloadCtr}%` : '—'}</strong><small>{formatNumber(d.downloadVisitors)} / {formatNumber(d.uploadBatchVisitors)} 位上传访客点击下载</small></div>
+        <div className="depthMetric"><span>CLI 点击</span><strong>{formatNumber(d.cliClicks)}</strong><small>{formatNumber(d.cliVisitors)} 位访客</small></div>
+        <div className="depthMetric"><span>打赏点击</span><strong>{formatNumber(d.donateClicks)}</strong><small>{formatNumber(d.donateVisitors)} 位访客</small></div>
+      </div>
+      <div className="depthActions">
+        <p><strong>CLI</strong>{actionSummary(d.cliActions, { open: '展开', close: '收起', copy_link: '复制链接' })}</p>
+        <p><strong>打赏</strong>{actionSummary(d.donateActions, { open: '打开', close: '收起', alipay: '支付宝', wechat: '微信', copy_wechat: '复制微信号' })}</p>
+      </div>
+      <p className="depthNote">下载 CTR = 点击下载的访客 ÷ 实际上传文件的访客；没有上传访客时不显示百分比。</p>
+    </section>
+
+    <section id="formats" ref={(node) => { sectionRefs.current[3] = node }} className="analysisSection reveal">
       <div className="sectionHeading"><div><h2>文件格式表现</h2><p>只记录扩展名、数量与结果，不记录文件名或歌曲信息。</p></div>
         <label>排序 <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="count">导入量</option><option value="successRate">成功率</option></select></label>
       </div>
       {!formats.length ? <div className="emptyState">还没有格式数据。导入第一批文件后，这里才会形成真实比较。</div> : <div className="tableWrap"><table><thead><tr><th>格式</th><th>导入</th><th>成功</th><th>失败</th><th>成功率</th></tr></thead><tbody>{formats.slice(0, expanded ? formats.length : 8).map((row) => <tr key={row.format}><th>{row.format}</th><td>{row.count}</td><td>{row.successes}</td><td>{row.failures}</td><td>{row.successRate}%</td></tr>)}</tbody></table>{formats.length > 8 && <button className="expandTable" onClick={() => setExpanded((value) => !value)}>{expanded ? '收起' : `展开全部 ${formats.length} 项`}</button>}</div>}
     </section>
 
-    <section id="quality" ref={(node) => { sectionRefs.current[3] = node }} className="qualityBand reveal">
+    <section id="quality" ref={(node) => { sectionRefs.current[4] = node }} className="qualityBand reveal">
       <h2>数据口径与边界</h2>
       <div className="qualityGrid"><p><strong>来源</strong>网页内的匿名产品事件，经 HTTPS 写入腾讯云 SQLite。</p><p><strong>身份</strong>浏览器随机标识；不能识别真实人物，清理浏览器数据后会成为新访客。</p><p><strong>排除</strong>不上传音频、文件名、歌曲元数据、原始 IP、原始 User-Agent。</p><p><strong>时区与新鲜度</strong>按 Asia/Shanghai 分日；刷新看板时即时汇总。</p></div>
     </section>

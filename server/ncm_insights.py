@@ -18,8 +18,14 @@ ALLOWED_ORIGINS = {value.strip() for value in os.environ.get('NCM_INSIGHTS_ORIGI
 TZ = timezone(timedelta(hours=8))
 TOKENS = {}
 FAILURES = defaultdict(list)
-VALID_EVENTS = {'page_view', 'files_added', 'conversion_success', 'conversion_failure', 'download'}
+VALID_EVENTS = {
+    'page_view', 'upload_click', 'files_added', 'conversion_success',
+    'conversion_failure', 'download', 'cli_click', 'donate_click',
+}
 VALID_FORMATS = {'NCM', 'FLAC', 'KGM', 'KGMA', 'VPR', '未知'}
+VALID_UPLOAD_SURFACES = {'hero', 'choose_more', 'drop'}
+VALID_CLI_ACTIONS = {'open', 'close', 'copy_link'}
+VALID_DONATE_ACTIONS = {'open', 'close', 'alipay', 'wechat', 'copy_wechat'}
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -54,19 +60,29 @@ def clean_id(value, prefix):
 def clean_properties(name, raw):
     raw = raw if isinstance(raw, dict) else {}
     result = {}
-    if name == 'files_added':
+    if name == 'upload_click':
+        result['surface'] = raw.get('surface') if raw.get('surface') in VALID_UPLOAD_SURFACES else 'hero'
+    elif name == 'files_added':
         result['count'] = max(0, min(100, int(raw.get('count', 0) or 0)))
         formats = raw.get('formats') if isinstance(raw.get('formats'), dict) else {}
         result['formats'] = {key: max(0, min(100, int(value or 0))) for key, value in formats.items() if key in VALID_FORMATS}
     elif name.startswith('conversion_'):
         result['format'] = raw.get('format') if raw.get('format') in VALID_FORMATS else '未知'
         result['sizeBucket'] = raw.get('sizeBucket') if raw.get('sizeBucket') in {'<5 MB','5–25 MB','25–100 MB','≥100 MB'} else '未知'
-        if name == 'conversion_success': result['durationBucket'] = str(raw.get('durationBucket', '未知'))[:20]
+        if name == 'conversion_success':
+            result['durationBucket'] = str(raw.get('durationBucket', '未知'))[:20]
+            try: duration_ms = int(raw.get('durationMs', 0) or 0)
+            except (TypeError, ValueError): duration_ms = 0
+            result['durationMs'] = max(0, min(900000, duration_ms))
         else: result['reason'] = str(raw.get('reason', 'conversion_error'))[:30]
     elif name == 'download':
         result['kind'] = raw.get('kind') if raw.get('kind') in {'single','zip'} else 'single'
         result['count'] = max(1, min(100, int(raw.get('count', 1) or 1)))
         if raw.get('format') in VALID_FORMATS: result['format'] = raw['format']
+    elif name == 'cli_click':
+        result['action'] = raw.get('action') if raw.get('action') in VALID_CLI_ACTIONS else 'open'
+    elif name == 'donate_click':
+        result['action'] = raw.get('action') if raw.get('action') in VALID_DONATE_ACTIONS else 'open'
     return result
 
 class Handler(BaseHTTPRequestHandler):
@@ -157,17 +173,29 @@ class Handler(BaseHTTPRequestHandler):
             if legacy['day'] in daily:
                 daily[legacy['day']]['legacyVisitors'] = legacy['visitors']
                 daily[legacy['day']]['legacyPageviews'] = legacy['pageviews']
-        visitors=set(); sessions=set(); file_visitors=set(); download_visitors=set(); files=successes=failures=downloads=0
+        visitors=set(); sessions=set(); file_visitors=set(); download_visitors=set(); upload_click_visitors=set(); cli_visitors=set(); donate_visitors=set()
+        files=successes=failures=downloads=upload_clicks=upload_batches=0
+        upload_batch_sizes=[]; duration_values=[]; cli_clicks=donate_clicks=0
+        cli_actions=defaultdict(int); donate_actions=defaultdict(int)
         format_stats=defaultdict(lambda:{'count':0,'successes':0,'failures':0})
         for row in rows:
             props=json.loads(row['properties']); visitors.add(row['visitor_id']); sessions.add(row['session_id']); daily[row['day']]['visitors'].add(row['visitor_id'])
-            if row['name']=='files_added':
+            if row['name']=='upload_click':
+                upload_clicks += 1; upload_click_visitors.add(row['visitor_id'])
+            elif row['name']=='files_added':
                 file_visitors.add(row['visitor_id']); files += props.get('count',0)
+                upload_batches += 1; upload_batch_sizes.append(props.get('count', 0))
                 for fmt,count in props.get('formats',{}).items(): format_stats[fmt]['count'] += count
             elif row['name']=='conversion_success':
                 successes += 1; daily[row['day']]['conversions'] += 1; format_stats[props.get('format','未知')]['successes'] += 1
+                duration_ms = props.get('durationMs')
+                if isinstance(duration_ms, int) and duration_ms > 0: duration_values.append(duration_ms)
             elif row['name']=='conversion_failure': failures += 1; format_stats[props.get('format','未知')]['failures'] += 1
             elif row['name']=='download': downloads += 1; download_visitors.add(row['visitor_id'])
+            elif row['name']=='cli_click':
+                cli_clicks += 1; cli_visitors.add(row['visitor_id']); cli_actions[props.get('action','open')] += 1
+            elif row['name']=='donate_click':
+                donate_clicks += 1; donate_visitors.add(row['visitor_id']); donate_actions[props.get('action','open')] += 1
         attempts=successes+failures
         formats=[]
         for fmt,values in format_stats.items():
@@ -180,7 +208,33 @@ class Handler(BaseHTTPRequestHandler):
             merged_legacy_visitors = sum(value['legacyVisitors'] for value in daily.values())
         local_visitors_after_legacy = {row['visitor_id'] for row in rows if not legacy_until or row['day'] > legacy_until}
         merged_visitors = merged_legacy_visitors + len(local_visitors_after_legacy)
-        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':merged_visitors,'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'daily':[{'date':value['date'],'visitors':value['legacyVisitors'] or len(value['visitors']),'conversions':value['conversions']} for value in daily.values()],'formats':formats}
+        sorted_durations = sorted(duration_values)
+        median_duration = sorted_durations[len(sorted_durations) // 2] if sorted_durations else 0
+        if sorted_durations and len(sorted_durations) % 2 == 0:
+            midpoint = len(sorted_durations) // 2
+            median_duration = round((sorted_durations[midpoint - 1] + sorted_durations[midpoint]) / 2)
+        depth = {
+            'uploadClicks': upload_clicks,
+            'uploadClickVisitors': len(upload_click_visitors),
+            'uploadBatches': upload_batches,
+            'uploadBatchVisitors': len(file_visitors),
+            'filesAdded': files,
+            'avgFilesPerUpload': round(files / upload_batches, 1) if upload_batches else 0,
+            'maxFilesPerUpload': max(upload_batch_sizes, default=0),
+            'downloadClicks': downloads,
+            'downloadVisitors': len(download_visitors),
+            'downloadCtr': round(len(download_visitors) / len(file_visitors) * 100, 1) if file_visitors else 0,
+            'conversionDurationCount': len(duration_values),
+            'conversionDurationAvgMs': round(sum(duration_values) / len(duration_values)) if duration_values else 0,
+            'conversionDurationP50Ms': median_duration,
+            'cliClicks': cli_clicks,
+            'cliVisitors': len(cli_visitors),
+            'cliActions': dict(cli_actions),
+            'donateClicks': donate_clicks,
+            'donateVisitors': len(donate_visitors),
+            'donateActions': dict(donate_actions),
+        }
+        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':merged_visitors,'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'depth':depth,'daily':[{'date':value['date'],'visitors':value['legacyVisitors'] or len(value['visitors']),'conversions':value['conversions']} for value in daily.values()],'formats':formats}
         self.send_json(200,payload)
 
 if __name__ == '__main__':

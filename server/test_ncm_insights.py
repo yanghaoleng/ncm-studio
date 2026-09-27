@@ -15,7 +15,16 @@ class InsightsTests(unittest.TestCase):
 
     def test_properties_drop_private_fields(self):
         result = module.clean_properties('conversion_success', {'format':'NCM','filename':'private.ncm','title':'Secret','sizeBucket':'<5 MB'})
-        self.assertEqual(result, {'format':'NCM','sizeBucket':'<5 MB','durationBucket':'未知'})
+        self.assertEqual(result, {'format':'NCM','sizeBucket':'<5 MB','durationBucket':'未知','durationMs':0})
+
+    def test_depth_events_keep_only_bounded_dimensions(self):
+        self.assertEqual(module.clean_properties('upload_click', {'surface':'hero','filename':'private.ncm'}), {'surface':'hero'})
+        self.assertEqual(module.clean_properties('cli_click', {'action':'copy_link','command':'private'}), {'action':'copy_link'})
+        self.assertEqual(module.clean_properties('donate_click', {'action':'wechat','account':'private'}), {'action':'wechat'})
+
+    def test_duration_is_clamped(self):
+        result = module.clean_properties('conversion_success', {'durationMs': 9999999})
+        self.assertEqual(result['durationMs'], 900000)
 
     def test_file_counts_are_clamped(self):
         result = module.clean_properties('files_added', {'count':1000,'formats':{'NCM':200,'EXE':2}})

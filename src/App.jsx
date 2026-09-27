@@ -670,7 +670,10 @@ function App() {
 
   function toggleDonateSection() {
     if (!donateSectionExpanded) chooseNextDonatePraise()
-    setDonateSectionExpanded((current) => !current)
+    setDonateSectionExpanded((current) => {
+      trackEvent('donate_click', { action: current ? 'close' : 'open' })
+      return !current
+    })
   }
 
   function revealDonateSection({ scrollOnMobile = false } = {}) {
@@ -928,6 +931,7 @@ function App() {
   }
 
   async function copyCliPackageLink() {
+    trackEvent('cli_click', { action: 'copy_link' })
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(NPM_PACKAGE_URL)
@@ -952,6 +956,7 @@ function App() {
   }
 
   async function copyWechatId() {
+    trackEvent('donate_click', { action: 'copy_wechat' })
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(WECHAT_ID)
@@ -1033,10 +1038,12 @@ function App() {
       )
 
       if (options.select !== false) setSelectedId(track.id)
+      const durationMs = Math.max(0, Math.min(900000, Math.round(performance.now() - (trackStartedAtRef.current.get(track.id) || performance.now()))))
       trackEvent('conversion_success', {
         format: fileFormat(track.file?.name),
         sizeBucket: sizeBucket(track.file?.size),
-        durationBucket: durationBucket(performance.now() - (trackStartedAtRef.current.get(track.id) || performance.now())),
+        durationMs,
+        durationBucket: durationBucket(durationMs),
       })
     } catch (error) {
       if (cancelledTrackIdsRef.current.has(track.id)) return
@@ -1298,6 +1305,7 @@ function App() {
           onDrop={(event) => {
             event.preventDefault()
             setIsDragging(false)
+            trackEvent('upload_click', { surface: 'drop' })
             addFiles(event.dataTransfer.files)
           }}
         >
@@ -1325,7 +1333,10 @@ function App() {
               <button
                 className={`dropzone heroDropzone ${isDragging ? 'isDragging' : ''}`}
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  trackEvent('upload_click', { surface: 'hero' })
+                  fileInputRef.current?.click()
+                }}
               >
                 <Upload size={34} strokeWidth={2.8} />
                 <strong>{messages.chooseDropTitle}</strong>
@@ -1364,7 +1375,10 @@ function App() {
                   </p>
                 </div>
                 <div className="queueControls">
-                  <button className="secondaryButton" type="button" onClick={() => fileInputRef.current?.click()}>
+                  <button className="secondaryButton" type="button" onClick={() => {
+                    trackEvent('upload_click', { surface: 'choose_more' })
+                    fileInputRef.current?.click()
+                  }}>
                     <Upload size={17} strokeWidth={2.8} />
                     {messages.chooseMore}
                   </button>
@@ -1439,7 +1453,11 @@ function App() {
               aria-expanded={cliSectionExpanded}
               aria-controls="cli-section-body"
               aria-label={cliSectionExpanded ? messages.localCliCollapse : messages.localCliExpand}
-              onClick={() => setCliSectionExpanded((current) => !current)}
+              onClick={() => setCliSectionExpanded((current) => {
+                const next = !current
+                trackEvent('cli_click', { action: next ? 'open' : 'close' })
+                return next
+              })}
             >
               <span className="cliInstallHeading">
                 <span className="cliInstallIcon" aria-hidden="true">
@@ -1524,7 +1542,10 @@ function App() {
                         type="button"
                         role="tab"
                         aria-selected={donateMethod === 'alipay'}
-                        onClick={() => setDonateMethod('alipay')}
+                        onClick={() => {
+                          trackEvent('donate_click', { action: 'alipay' })
+                          setDonateMethod('alipay')
+                        }}
                       >
                         <WalletCards size={14} />
                         <span>{messages.donateAlipay}</span>
@@ -1534,7 +1555,10 @@ function App() {
                         type="button"
                         role="tab"
                         aria-selected={donateMethod === 'wechat'}
-                        onClick={() => setDonateMethod('wechat')}
+                        onClick={() => {
+                          trackEvent('donate_click', { action: 'wechat' })
+                          setDonateMethod('wechat')
+                        }}
                       >
                         <MessageCircle size={14} />
                         <span>{messages.donateWechat}</span>
