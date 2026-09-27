@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+import hashlib
+import hmac
+import json
+import os
+import secrets
+import sqlite3
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlparse
+
+DB_PATH = os.environ.get('NCM_INSIGHTS_DB', '/var/lib/ncm-insights/analytics.sqlite3')
+ACCESS_CODE = os.environ.get('NCM_INSIGHTS_CODE', '')
+PORT = int(os.environ.get('NCM_INSIGHTS_PORT', '8146'))
+ALLOWED_ORIGINS = {value.strip() for value in os.environ.get('NCM_INSIGHTS_ORIGINS', 'https://ncm.mikeywa.icu').split(',') if value.strip()}
+TZ = timezone(timedelta(hours=8))
+TOKENS = {}
+FAILURES = defaultdict(list)
+VALID_EVENTS = {'page_view', 'files_added', 'conversion_success', 'conversion_failure', 'download'}
+VALID_FORMATS = {'NCM', 'FLAC', 'KGM', 'KGMA', 'VPR', '未知'}
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+def connect():
+    database = sqlite3.connect(DB_PATH)
+    database.row_factory = sqlite3.Row
+    database.execute('PRAGMA journal_mode=WAL')
+    database.execute('''CREATE TABLE IF NOT EXISTS events (
+        id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, day TEXT NOT NULL,
+        name TEXT NOT NULL, visitor_id TEXT NOT NULL, session_id TEXT NOT NULL,
+        path TEXT NOT NULL, language TEXT NOT NULL, properties TEXT NOT NULL
+    )''')
+    database.execute('CREATE INDEX IF NOT EXISTS idx_events_day_name ON events(day, name)')
+    database.commit()
+    return database
+
+def clean_id(value, prefix):
+    value = str(value or '')
+    return value if value.startswith(prefix) and 3 <= len(value) <= 80 and all(c.isalnum() or c in '_-' for c in value) else ''
+
+def clean_properties(name, raw):
+    raw = raw if isinstance(raw, dict) else {}
+    result = {}
+    if name == 'files_added':
+        result['count'] = max(0, min(100, int(raw.get('count', 0) or 0)))
+        formats = raw.get('formats') if isinstance(raw.get('formats'), dict) else {}
+        result['formats'] = {key: max(0, min(100, int(value or 0))) for key, value in formats.items() if key in VALID_FORMATS}
+    elif name.startswith('conversion_'):
+        result['format'] = raw.get('format') if raw.get('format') in VALID_FORMATS else '未知'
+        result['sizeBucket'] = raw.get('sizeBucket') if raw.get('sizeBucket') in {'<5 MB','5–25 MB','25–100 MB','≥100 MB'} else '未知'
+        if name == 'conversion_success': result['durationBucket'] = str(raw.get('durationBucket', '未知'))[:20]
+        else: result['reason'] = str(raw.get('reason', 'conversion_error'))[:30]
+    elif name == 'download':
+        result['kind'] = raw.get('kind') if raw.get('kind') in {'single','zip'} else 'single'
+        result['count'] = max(1, min(100, int(raw.get('count', 1) or 1)))
+        if raw.get('format') in VALID_FORMATS: result['format'] = raw['format']
+    return result
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = 'NcmInsights/1.0'
+
+    def log_message(self, fmt, *args):
+        print('%s %s' % (self.log_date_time_string(), fmt % args))
+
+    def origin(self):
+        return self.headers.get('Origin', '')
+
+    def send_json(self, status, payload, extra=None):
+        body = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode()
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'no-store')
+        if self.origin() in ALLOWED_ORIGINS:
+            self.send_header('Access-Control-Allow-Origin', self.origin())
+            self.send_header('Vary', 'Origin')
+        for key, value in (extra or {}).items(): self.send_header(key, value)
+        self.end_headers(); self.wfile.write(body)
+
+    def do_OPTIONS(self):
+        if self.origin() not in ALLOWED_ORIGINS: return self.send_json(403, {'ok': False})
+        self.send_json(204, {}, {'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Max-Age':'86400'})
+
+    def body(self):
+        length = int(self.headers.get('Content-Length', '0'))
+        if length > 16384: raise ValueError('too large')
+        return json.loads(self.rfile.read(length) or b'{}')
+
+    def client_key(self):
+        forwarded = self.headers.get('X-Forwarded-For', '').split(',')[0].strip()
+        return hashlib.sha256((forwarded or self.client_address[0]).encode()).hexdigest()[:20]
+
+    def authorized(self):
+        header = self.headers.get('Authorization', '')
+        token = header[7:] if header.startswith('Bearer ') else ''
+        expiry = TOKENS.get(token, 0)
+        if expiry <= time.time():
+            TOKENS.pop(token, None); return False
+        return True
+
+    def do_POST(self):
+        path = urlparse(self.path).path
+        if self.origin() and self.origin() not in ALLOWED_ORIGINS: return self.send_json(403, {'message':'origin not allowed'})
+        try: data = self.body()
+        except Exception: return self.send_json(400, {'message':'invalid request'})
+        if path.endswith('/auth'):
+            key = self.client_key(); cutoff = time.time() - 600
+            FAILURES[key] = [value for value in FAILURES[key] if value > cutoff]
+            if len(FAILURES[key]) >= 5:
+                retry = int(max(1, FAILURES[key][0] + 600 - time.time()))
+                return self.send_json(429, {'message':'尝试过多','retryAfter':retry})
+            if not ACCESS_CODE or not hmac.compare_digest(str(data.get('code','')), ACCESS_CODE):
+                FAILURES[key].append(time.time()); return self.send_json(401, {'message':'访问码不正确'})
+            FAILURES.pop(key, None); token = secrets.token_urlsafe(32); TOKENS[token] = time.time() + 8 * 3600
+            return self.send_json(200, {'token':token,'expiresIn':28800})
+        if path.endswith('/events'):
+            name = data.get('name')
+            visitor = clean_id(data.get('visitorId'), 'v_'); session = clean_id(data.get('sessionId'), 's_')
+            if name not in VALID_EVENTS or not visitor or not session: return self.send_json(400, {'message':'invalid event'})
+            created = datetime.now(timezone.utc); day = created.astimezone(TZ).date().isoformat()
+            path_value = str(data.get('path','/'))[:40] if str(data.get('path','/')).startswith('/') else '/'
+            language = str(data.get('language',''))[:16]
+            props = clean_properties(name, data.get('properties'))
+            with connect() as database:
+                database.execute('INSERT INTO events(created_at,day,name,visitor_id,session_id,path,language,properties) VALUES(?,?,?,?,?,?,?,?)', (created.isoformat(),day,name,visitor,session,path_value,language,json.dumps(props,separators=(',',':'))))
+            return self.send_json(202, {'ok':True})
+        return self.send_json(404, {'message':'not found'})
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path.endswith('/health'): return self.send_json(200, {'ok':True,'time':now_iso()})
+        if not parsed.path.endswith('/summary'): return self.send_json(404, {'message':'not found'})
+        if not self.authorized(): return self.send_json(401, {'message':'unauthorized'})
+        try: days = max(1, min(90, int(parse_qs(parsed.query).get('days',['30'])[0])))
+        except ValueError: days = 30
+        end = datetime.now(TZ).date(); start = end - timedelta(days=days-1)
+        with connect() as database:
+            rows = database.execute('SELECT * FROM events WHERE day >= ? AND day <= ? ORDER BY created_at', (start.isoformat(),end.isoformat())).fetchall()
+            first = database.execute('SELECT MIN(created_at) AS value FROM events').fetchone()['value']
+        daily = { (start + timedelta(days=i)).isoformat(): {'date':(start + timedelta(days=i)).isoformat(),'visitors':set(),'conversions':0} for i in range(days) }
+        visitors=set(); sessions=set(); file_visitors=set(); download_visitors=set(); files=successes=failures=downloads=0
+        format_stats=defaultdict(lambda:{'count':0,'successes':0,'failures':0})
+        for row in rows:
+            props=json.loads(row['properties']); visitors.add(row['visitor_id']); sessions.add(row['session_id']); daily[row['day']]['visitors'].add(row['visitor_id'])
+            if row['name']=='files_added':
+                file_visitors.add(row['visitor_id']); files += props.get('count',0)
+                for fmt,count in props.get('formats',{}).items(): format_stats[fmt]['count'] += count
+            elif row['name']=='conversion_success':
+                successes += 1; daily[row['day']]['conversions'] += 1; format_stats[props.get('format','未知')]['successes'] += 1
+            elif row['name']=='conversion_failure': failures += 1; format_stats[props.get('format','未知')]['failures'] += 1
+            elif row['name']=='download': downloads += 1; download_visitors.add(row['visitor_id'])
+        attempts=successes+failures
+        formats=[]
+        for fmt,values in format_stats.items():
+            attempt=values['successes']+values['failures']; formats.append({'format':fmt,**values,'successRate':round(values['successes']/attempt*100,1) if attempt else 0})
+        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':len(visitors),'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'daily':[{'date':value['date'],'visitors':len(value['visitors']),'conversions':value['conversions']} for value in daily.values()],'formats':formats}
+        self.send_json(200,payload)
+
+if __name__ == '__main__':
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    connect().close()
+    ThreadingHTTPServer(('127.0.0.1', PORT), Handler).serve_forever()

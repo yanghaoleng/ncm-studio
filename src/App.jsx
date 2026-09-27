@@ -27,6 +27,7 @@ import { convertMusicFile, isSupportedMusicFile } from './lib/convert.js'
 import { AdaptiveTaskQueue, getConversionTaskWeight } from './lib/concurrency.js'
 import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
+import { durationBucket, fileFormat, sizeBucket, trackEvent } from './lib/analytics.js'
 
 const AUTHOR_HOME_URL = 'https://mikeywa.icu'
 const NPM_PACKAGE_URL = 'https://www.npmjs.com/package/ncm-studio-cli'
@@ -648,6 +649,7 @@ function App() {
   const previousConvertingIdsRef = useRef(new Set())
   const queueScrollFrameRef = useRef(null)
   const conversionStartedAtRef = useRef(null)
+  const trackStartedAtRef = useRef(new Map())
   const hadPendingConversionsRef = useRef(false)
   const cancelledTrackIdsRef = useRef(new Set())
   const audioRef = useRef(null)
@@ -694,6 +696,10 @@ function App() {
       tracks[0],
     [selectedId, tracks],
   )
+
+  useEffect(() => {
+    trackEvent('page_view')
+  }, [])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -978,6 +984,7 @@ function App() {
           : item,
       ),
     )
+    trackStartedAtRef.current.set(track.id, performance.now())
 
     const pulse = setInterval(() => {
       setTracks((current) =>
@@ -1026,6 +1033,11 @@ function App() {
       )
 
       if (options.select !== false) setSelectedId(track.id)
+      trackEvent('conversion_success', {
+        format: fileFormat(track.file?.name),
+        sizeBucket: sizeBucket(track.file?.size),
+        durationBucket: durationBucket(performance.now() - (trackStartedAtRef.current.get(track.id) || performance.now())),
+      })
     } catch (error) {
       if (cancelledTrackIdsRef.current.has(track.id)) return
       setTracks((current) =>
@@ -1035,8 +1047,14 @@ function App() {
             : item,
         ),
       )
+      trackEvent('conversion_failure', {
+        format: fileFormat(track.file?.name),
+        sizeBucket: sizeBucket(track.file?.size),
+        reason: error?.name === 'UnsupportedError' ? 'unsupported' : 'conversion_error',
+      })
     } finally {
       clearInterval(pulse)
+      trackStartedAtRef.current.delete(track.id)
     }
   }
 
@@ -1064,6 +1082,12 @@ function App() {
   function addFiles(fileList) {
     const files = Array.from(fileList || []).filter((file) => isSupportedMusicFile(file.name))
     if (!files.length) return
+    const formats = files.reduce((result, file) => {
+      const format = fileFormat(file.name)
+      result[format] = (result[format] || 0) + 1
+      return result
+    }, {})
+    trackEvent('files_added', { count: files.length, formats })
 
     if (zipDownloadResetTimerRef.current) {
       window.clearTimeout(zipDownloadResetTimerRef.current)
@@ -1104,6 +1128,7 @@ function App() {
   function downloadTrack(track) {
     if (!track?.audioBlob) return
     saveAs(track.audioBlob, track.filename || `${safeFilename(track.title)}.mp3`)
+    trackEvent('download', { kind: 'single', count: 1, format: fileFormat(track.file?.name) })
   }
 
   async function downloadZip() {
@@ -1130,6 +1155,7 @@ function App() {
         },
       })
       saveAs(blob, `ncm-studio-${readyTracks.length}-tracks.zip`)
+      trackEvent('download', { kind: 'zip', count: readyTracks.length })
       setZipDownloadState('downloaded')
       zipDownloadResetTimerRef.current = window.setTimeout(() => {
         setZipDownloadState('again')

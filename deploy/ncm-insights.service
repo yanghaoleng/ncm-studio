@@ -1,0 +1,21 @@
+[Unit]
+Description=NCM Studio privacy-safe analytics backend
+After=network.target
+
+[Service]
+Type=simple
+User=ncm-insights
+Group=ncm-insights
+WorkingDirectory=/opt/ncm-insights/current
+EnvironmentFile=/etc/ncm-insights.env
+ExecStart=/usr/bin/python3 /opt/ncm-insights/current/server/ncm_insights.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ncm-insights
+
+[Install]
+WantedBy=multi-user.target
