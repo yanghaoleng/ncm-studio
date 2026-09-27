@@ -102,7 +102,7 @@ function AccessGate({ onUnlock }) {
 function TrendChart({ rows, metric }) {
   const values = rows.map((row) => row[metric] || 0)
   const maximum = Math.max(...values, 1)
-  return <div className="trendChart" role="img" aria-label={`${metric === 'visitors' ? '访客' : '转换成功'}每日趋势`}>
+  return <div className="trendChart" role="img" aria-label={`${metric === 'visitors' ? '访客' : metric === 'legacyVisitors' ? 'Vercel 历史访客' : '转换成功'}每日趋势`}>
     {rows.map((row) => {
       const value = row[metric] || 0
       return <button key={row.date} className="trendBar" style={{ '--bar': `${Math.max(3, value / maximum * 100)}%` }} aria-label={`${row.date}：${value}`}>
@@ -163,6 +163,9 @@ function Dashboard({ token, onExpired }) {
   const downloadSentence = k.downloads
     ? `${formatNumber(k.downloads)} 次下载来自 ${formatNumber(k.downloadingVisitors)} 位匿名访客。`
     : '目前没有下载记录，不能据此判断用户是否完成了最终任务。'
+  const historicalSentence = data.historical?.visitors
+    ? `Vercel 历史基线（${formatDate(data.historical.since)}–${formatDate(data.historical.until)}）记录了 ${formatNumber(data.historical.visitors)} 位访客、${formatNumber(data.historical.pageviews)} 次页面访问。`
+    : 'Vercel 历史访问还没有导入；当前看板只显示腾讯云采集的新数据。'
 
   const sections = [['summary','结论'],['trend','趋势'],['formats','格式'],['quality','数据说明']]
   return <div className="dashboard">
@@ -176,6 +179,7 @@ function Dashboard({ token, onExpired }) {
       <h2>现在发生了什么</h2>
       <p className="finding">{conversionSentence}</p>
       <p className="finding">{downloadSentence}</p>
+      <p className="finding historyFinding">{historicalSentence}</p>
       <p className="finding muted">统计从 {formatDate(data.collectionStartedAt, true)} 开始；上线前的 Vercel 访问不能被还原成这套产品行为数据。</p>
       <div className="metricStrip">
         <div><span>匿名访客</span><strong>{formatNumber(k.visitors)}</strong><small>{formatNumber(k.sessions)} 个会话</small></div>
@@ -186,8 +190,8 @@ function Dashboard({ token, onExpired }) {
     </section>
 
     <section id="trend" ref={(node) => { sectionRefs.current[1] = node }} className="analysisSection reveal">
-      <div className="sectionHeading"><div><h2>{tab === 'visitors' ? '每日使用趋势' : '每日转换完成量'}</h2><p>{tab === 'visitors' ? '按匿名访客去重，适合观察到访节奏。' : '只统计浏览器实际返回成功的转换。'}</p></div>
-        <div className="tabs" role="tablist">{[['visitors','访客'],['conversions','转换']].map(([id,label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
+      <div className="sectionHeading"><div><h2>{tab === 'visitors' ? '每日使用趋势' : tab === 'legacyVisitors' ? 'Vercel 历史访问趋势' : '每日转换完成量'}</h2><p>{tab === 'visitors' ? '按腾讯云匿名访客去重，适合观察上线后的到访节奏。' : tab === 'legacyVisitors' ? '这是从 Vercel Web Analytics 导入的聚合访问数据，不含身份。' : '只统计浏览器实际返回成功的转换。'}</p></div>
+        <div className="tabs" role="tablist">{[['visitors','访客'],['legacyVisitors','Vercel访问'],['conversions','转换']].map(([id,label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
       </div>
       <TrendChart rows={data.daily} metric={tab} />
     </section>

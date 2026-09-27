@@ -28,6 +28,7 @@ button,select { font:inherit; }
 .summaryBand,.analysisSection,.qualityBand { scroll-margin-top:56px; padding:48px 0; border-bottom:1px solid var(--data-line); }
 .summaryBand h2,.analysisSection h2,.qualityBand h2 { margin:0 0 18px; letter-spacing:-.035em; font-size:24px; }
 .finding { margin:4px 0; max-width:860px; font-size:clamp(19px,2.3vw,28px); line-height:1.38; letter-spacing:-.025em; }
+.finding.historyFinding { color:var(--data-accent); }
 .finding.muted { margin-top:14px; color:var(--data-muted); font-size:14px; letter-spacing:0; }
 .metricStrip { display:grid; grid-template-columns:repeat(4,1fr); margin-top:34px; border-block:1px solid var(--data-line); }
 .metricStrip>div { padding:18px 20px 18px 0; min-width:0; }

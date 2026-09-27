@@ -21,4 +21,9 @@ class InsightsTests(unittest.TestCase):
         result = module.clean_properties('files_added', {'count':1000,'formats':{'NCM':200,'EXE':2}})
         self.assertEqual(result, {'count':100,'formats':{'NCM':100}})
 
+    def test_schema_has_legacy_analytics_tables(self):
+        database = module.connect()
+        names = {row[0] for row in database.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        self.assertTrue({'legacy_daily', 'legacy_totals'} <= names)
+
 if __name__ == '__main__': unittest.main()

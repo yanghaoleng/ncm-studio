@@ -34,6 +34,16 @@ def connect():
         path TEXT NOT NULL, language TEXT NOT NULL, properties TEXT NOT NULL
     )''')
     database.execute('CREATE INDEX IF NOT EXISTS idx_events_day_name ON events(day, name)')
+    database.execute('''CREATE TABLE IF NOT EXISTS legacy_daily (
+        source TEXT NOT NULL, day TEXT NOT NULL, visitors INTEGER NOT NULL,
+        pageviews INTEGER NOT NULL, imported_at TEXT NOT NULL,
+        PRIMARY KEY (source, day)
+    )''')
+    database.execute('''CREATE TABLE IF NOT EXISTS legacy_totals (
+        source TEXT NOT NULL, since_day TEXT NOT NULL, until_day TEXT NOT NULL,
+        visitors INTEGER NOT NULL, pageviews INTEGER NOT NULL, imported_at TEXT NOT NULL,
+        PRIMARY KEY (source, since_day, until_day)
+    )''')
     database.commit()
     return database
 
@@ -140,7 +150,13 @@ class Handler(BaseHTTPRequestHandler):
         with connect() as database:
             rows = database.execute('SELECT * FROM events WHERE day >= ? AND day <= ? ORDER BY created_at', (start.isoformat(),end.isoformat())).fetchall()
             first = database.execute('SELECT MIN(created_at) AS value FROM events').fetchone()['value']
-        daily = { (start + timedelta(days=i)).isoformat(): {'date':(start + timedelta(days=i)).isoformat(),'visitors':set(),'conversions':0} for i in range(days) }
+            legacy_rows = database.execute('SELECT day, visitors, pageviews FROM legacy_daily WHERE source = ? AND day >= ? AND day <= ? ORDER BY day', ('vercel_web_analytics', start.isoformat(), end.isoformat())).fetchall()
+            legacy_total = database.execute('SELECT visitors, pageviews, since_day, until_day, imported_at FROM legacy_totals WHERE source = ? AND since_day <= ? AND until_day >= ? ORDER BY imported_at DESC LIMIT 1', ('vercel_web_analytics', start.isoformat(), end.isoformat())).fetchone()
+        daily = { (start + timedelta(days=i)).isoformat(): {'date':(start + timedelta(days=i)).isoformat(),'visitors':set(),'conversions':0,'legacyVisitors':0,'legacyPageviews':0} for i in range(days) }
+        for legacy in legacy_rows:
+            if legacy['day'] in daily:
+                daily[legacy['day']]['legacyVisitors'] = legacy['visitors']
+                daily[legacy['day']]['legacyPageviews'] = legacy['pageviews']
         visitors=set(); sessions=set(); file_visitors=set(); download_visitors=set(); files=successes=failures=downloads=0
         format_stats=defaultdict(lambda:{'count':0,'successes':0,'failures':0})
         for row in rows:
@@ -156,7 +172,9 @@ class Handler(BaseHTTPRequestHandler):
         formats=[]
         for fmt,values in format_stats.items():
             attempt=values['successes']+values['failures']; formats.append({'format':fmt,**values,'successRate':round(values['successes']/attempt*100,1) if attempt else 0})
-        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':len(visitors),'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'daily':[{'date':value['date'],'visitors':len(value['visitors']),'conversions':value['conversions']} for value in daily.values()],'formats':formats}
+        historical_visitors = legacy_total['visitors'] if legacy_total else sum(value['legacyVisitors'] for value in daily.values())
+        historical_pageviews = legacy_total['pageviews'] if legacy_total else sum(value['legacyPageviews'] for value in daily.values())
+        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':len(visitors),'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'historical':{'source':'Vercel Web Analytics','visitors':historical_visitors,'pageviews':historical_pageviews,'since':legacy_total['since_day'] if legacy_total else (legacy_rows[0]['day'] if legacy_rows else None),'until':legacy_total['until_day'] if legacy_total else (legacy_rows[-1]['day'] if legacy_rows else None),'importedAt':legacy_total['imported_at'] if legacy_total else None},'daily':[{'date':value['date'],'visitors':len(value['visitors']),'conversions':value['conversions'],'legacyVisitors':value['legacyVisitors'],'legacyPageviews':value['legacyPageviews']} for value in daily.values()],'formats':formats}
         self.send_json(200,payload)
 
 if __name__ == '__main__':
