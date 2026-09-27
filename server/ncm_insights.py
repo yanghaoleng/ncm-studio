@@ -172,9 +172,15 @@ class Handler(BaseHTTPRequestHandler):
         formats=[]
         for fmt,values in format_stats.items():
             attempt=values['successes']+values['failures']; formats.append({'format':fmt,**values,'successRate':round(values['successes']/attempt*100,1) if attempt else 0})
-        historical_visitors = legacy_total['visitors'] if legacy_total else sum(value['legacyVisitors'] for value in daily.values())
-        historical_pageviews = legacy_total['pageviews'] if legacy_total else sum(value['legacyPageviews'] for value in daily.values())
-        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':len(visitors),'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'historical':{'source':'Vercel Web Analytics','visitors':historical_visitors,'pageviews':historical_pageviews,'since':legacy_total['since_day'] if legacy_total else (legacy_rows[0]['day'] if legacy_rows else None),'until':legacy_total['until_day'] if legacy_total else (legacy_rows[-1]['day'] if legacy_rows else None),'importedAt':legacy_total['imported_at'] if legacy_total else None},'daily':[{'date':value['date'],'visitors':len(value['visitors']),'conversions':value['conversions'],'legacyVisitors':value['legacyVisitors'],'legacyPageviews':value['legacyPageviews']} for value in daily.values()],'formats':formats}
+        legacy_since = legacy_total['since_day'] if legacy_total else (legacy_rows[0]['day'] if legacy_rows else None)
+        legacy_until = legacy_total['until_day'] if legacy_total else (legacy_rows[-1]['day'] if legacy_rows else None)
+        if legacy_total and start.isoformat() <= legacy_since and end.isoformat() >= legacy_until:
+            merged_legacy_visitors = legacy_total['visitors']
+        else:
+            merged_legacy_visitors = sum(value['legacyVisitors'] for value in daily.values())
+        local_visitors_after_legacy = {row['visitor_id'] for row in rows if not legacy_until or row['day'] > legacy_until}
+        merged_visitors = merged_legacy_visitors + len(local_visitors_after_legacy)
+        payload={'freshAt':now_iso(),'collectionStartedAt':first,'period':{'days':days,'start':start.isoformat(),'end':end.isoformat(),'timezone':'Asia/Shanghai'},'kpis':{'visitors':merged_visitors,'sessions':len(sessions),'filesAdded':files,'fileAddingVisitors':len(file_visitors),'conversionAttempts':attempts,'conversionSuccesses':successes,'conversionRate':round(successes/attempts*100,1) if attempts else 0,'downloads':downloads,'downloadingVisitors':len(download_visitors)},'daily':[{'date':value['date'],'visitors':value['legacyVisitors'] or len(value['visitors']),'conversions':value['conversions']} for value in daily.values()],'formats':formats}
         self.send_json(200,payload)
 
 if __name__ == '__main__':
