@@ -1,0 +1,82 @@
+{
+  "checked": "2026-11-07",
+  "note": "Verbatim package license copies are from the locked npm versions in DEPENDENCIES.json; accompanying notices explain external upstream license sources and limits. These hashes identify this reviewed notice snapshot, not a complete corresponding-source archive.",
+  "files": [
+    {
+      "path": "licenses/DEPENDENCIES.json",
+      "sha256": "f4c5c2aee2838398863c2692768cae74d48fa59c0bd76015679671f71e4a06e7"
+    },
+    {
+      "path": "licenses/GPL-3.0.txt",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "licenses/LGPL-3.0.txt",
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "path": "licenses/audio-decode-flac/LICENSE",
+      "sha256": "2fc0c40b5be13433bb5efe454f12e277a2e2967c44958d59051283557da70989"
+    },
+    {
+      "path": "licenses/audio-decode-vorbis/LICENSE",
+      "sha256": "2fc0c40b5be13433bb5efe454f12e277a2e2967c44958d59051283557da70989"
+    },
+    {
+      "path": "licenses/audio-decode-wav/LICENSE",
+      "sha256": "95fa840bff158bb30e4d9ae1bbce0dd3a94d01b48835afba1b86c216b7e3b4aa"
+    },
+    {
+      "path": "licenses/breezystack-lamejs/LICENSE",
+      "sha256": "cd144ca132e3842b01f5ed2d6f3a32141e24a1cc15e115aa5f19a2294ce0a379"
+    },
+    {
+      "path": "licenses/browser-id3-writer/LICENSE.md",
+      "sha256": "caabbf461409fa31ec0d908c0565e07d31b1e6e89d13f43569b5984e9754266b"
+    },
+    {
+      "path": "licenses/codec-parser/LICENSE",
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "path": "licenses/crypto-js/LICENSE",
+      "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+    },
+    {
+      "path": "licenses/file-saver/LICENSE.md",
+      "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+    },
+    {
+      "path": "licenses/gsap/standard-license.txt",
+      "sha256": "3674a2d03b58373ae688aa20025fd2018bf5045224556dc96a6f79a9d24d9952"
+    },
+    {
+      "path": "licenses/kgmwasm/LICENSE.txt",
+      "sha256": "ac12043fe4db7867259738efda25536ea27e9ecc760a37cd6ca9df50d743959d"
+    },
+    {
+      "path": "licenses/lucide-react/LICENSE",
+      "sha256": "3c57143f22dac950efebf84002e360bba5458c7b90fe583b0667aaaef1a7256e"
+    },
+    {
+      "path": "licenses/react/LICENSE",
+      "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "path": "licenses/react-dom/LICENSE",
+      "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "path": "licenses/sql.js/LICENSE",
+      "sha256": "60a3f6e4d7b29b4321359e683b36cf198d24f58e24582070f56e6fa89d5ee2be"
+    },
+    {
+      "path": "licenses/unlock-music/LICENSE_APACHE",
+      "sha256": "97512f86b2c87cc85514659cf37f0f7f301ffcb09221ad0df0643ce61708d7c3"
+    },
+    {
+      "path": "licenses/unlock-music/LICENSE_MIT",
+      "sha256": "93a7afe6ecf6f42d2ffe1649e29ebff639410e6e5f113d7a54c49f11df0bcb55"
+    }
+  ]
+}

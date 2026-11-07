@@ -210,3 +210,7 @@ Bing 站点所有权通过根路径 `/BingSiteAuth.xml` 验证；站长平台于
 ## 免责声明
 
 本项目不提供、存储或分发任何音乐文件。使用者需要自行确保拥有相关音乐文件或使用行为的合法授权。
+
+## 第三方分发检查
+
+项目现有 MIT 许可不覆盖依赖自身的独立条款。`@breezystack/lamejs` 和 `codec-parser` 涉及 LGPL，GSAP 采用独立 Standard License。通知与许可全文会随 npm 包和网页构建保留；对应源码与可替换/重新组合机制仍需按实际发布物核验。详见 [第三方通知](THIRD_PARTY_NOTICES.md)和 [分发检查清单](DISTRIBUTION_COMPLIANCE.md)。

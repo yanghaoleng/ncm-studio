@@ -1,0 +1,118 @@
+{
+  "checked": "2026-11-07",
+  "scope": "Selected reviewed components; not an exhaustive dependency or binary-source inventory. Versions and integrity from package-lock.json.",
+  "packages": [
+    {
+      "version": "1.2.7",
+      "license": "LGPL-3.0",
+      "resolved": "https://registry.npmjs.org/@breezystack/lamejs/-/lamejs-1.2.7.tgz",
+      "integrity": "sha512-6wc7ck65ctA75Hq7FYHTtTvGnYs6msgdxiSUICQ+A01nVOWg6rqouZB8IdyteRlfpYYiFovkf67dIeOgWIUzTA==",
+      "name": "@breezystack/lamejs"
+    },
+    {
+      "version": "2.5.0",
+      "license": "LGPL-3.0-or-later",
+      "resolved": "https://registry.npmmirror.com/codec-parser/-/codec-parser-2.5.0.tgz",
+      "integrity": "sha512-Ru9t80fV8B0ZiixQl8xhMTLru+dzuis/KQld32/x5T/+3LwZb0/YvQdSKytX9JqCnRdiupvAvyYJINKrXieziQ==",
+      "name": "codec-parser"
+    },
+    {
+      "version": "3.15.0",
+      "license": "Standard 'no charge' license: https://gsap.com/standard-license.",
+      "resolved": "https://registry.npmjs.org/gsap/-/gsap-3.15.0.tgz",
+      "integrity": "sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==",
+      "name": "gsap"
+    },
+    {
+      "version": "1.3.3",
+      "license": "MIT",
+      "resolved": "https://registry.npmmirror.com/@audio/decode-flac/-/decode-flac-1.3.3.tgz",
+      "integrity": "sha512-1Kp279VMMRa9C0VdYtspj8BknXqaKsde5WJGRwar+ybLf6hnYn1kjsbMu0fvnZtJZk7XmQKb93Ye87REXlMwmg==",
+      "name": "@audio/decode-flac"
+    },
+    {
+      "version": "1.3.2",
+      "license": "MIT",
+      "resolved": "https://registry.npmmirror.com/@audio/decode-vorbis/-/decode-vorbis-1.3.2.tgz",
+      "integrity": "sha512-UF2kbP07OV0HAuKu9rZEJIq6g7kaZjHHPOavs5TNwMW6s2bVZSbvof+zTev3s8pcqeYDtpQGpX3qhKpPK3HOWA==",
+      "name": "@audio/decode-vorbis"
+    },
+    {
+      "version": "1.5.0",
+      "license": "MIT",
+      "resolved": "https://registry.npmmirror.com/@audio/decode-wav/-/decode-wav-1.5.0.tgz",
+      "integrity": "sha512-gxCPRF9A/nBwdnMCJ4N5tDaLBWlfZaNKWbsqDZTMt7A5gN7w+a7HGikiN1dInAb5L0bcj6ByQuU1acfL7p5pcA==",
+      "name": "@audio/decode-wav"
+    },
+    {
+      "version": "0.2.10",
+      "license": "MIT",
+      "resolved": "https://registry.npmmirror.com/@wasm-audio-decoders/flac/-/flac-0.2.10.tgz",
+      "integrity": "sha512-YfcyoD2rYRBa6ffawZKNi5qvV5HArJmNmuMVUPoutuZ2hhGi6WNSWIzgvbROGmPbFivLL764Am7xxJENWJDhjw==",
+      "name": "@wasm-audio-decoders/flac"
+    },
+    {
+      "version": "0.1.20",
+      "license": "MIT",
+      "resolved": "https://registry.npmmirror.com/@wasm-audio-decoders/ogg-vorbis/-/ogg-vorbis-0.1.20.tgz",
+      "integrity": "sha512-zaQPasU5usRjUDXtXOHYED5tfkR4QMXd+EH3Nrz1+4+M5pCsdD+s9YxJqb0oqnTyRu/KUujOmu5Z/m/NT47vwg==",
+      "name": "@wasm-audio-decoders/ogg-vorbis"
+    },
+    {
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@xhacker/kgmwasm/-/kgmwasm-1.0.0.tgz",
+      "integrity": "sha512-LnBuEVRJQVyJGJTb0cPZxZDu7Qi4PqDhJLRaRJfG6pSUeZuIoglzHiysyd4XfNHobNnLxG8v1IiNPS/uWwoG0A==",
+      "name": "@xhacker/kgmwasm"
+    },
+    {
+      "version": "1.14.1",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/sql.js/-/sql.js-1.14.1.tgz",
+      "integrity": "sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==",
+      "name": "sql.js"
+    },
+    {
+      "version": "4.2.0",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/crypto-js/-/crypto-js-4.2.0.tgz",
+      "integrity": "sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==",
+      "name": "crypto-js"
+    },
+    {
+      "version": "6.3.1",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/browser-id3-writer/-/browser-id3-writer-6.3.1.tgz",
+      "integrity": "sha512-sRA4Uq9Q3NsmXiVpLvIDxzomtgCdbw6SY85A6fw7dUQGRVoOBg1/buFv6spPhYiSo6FlVtN5OJQTvvhbmfx9rQ==",
+      "name": "browser-id3-writer"
+    },
+    {
+      "version": "19.2.7",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/react/-/react-19.2.7.tgz",
+      "integrity": "sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==",
+      "name": "react"
+    },
+    {
+      "version": "19.2.7",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.2.7.tgz",
+      "integrity": "sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==",
+      "name": "react-dom"
+    },
+    {
+      "version": "2.0.5",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/file-saver/-/file-saver-2.0.5.tgz",
+      "integrity": "sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==",
+      "name": "file-saver"
+    },
+    {
+      "version": "0.556.0",
+      "license": "ISC",
+      "resolved": "https://registry.npmjs.org/lucide-react/-/lucide-react-0.556.0.tgz",
+      "integrity": "sha512-iOb8dRk7kLaYBZhR2VlV1CeJGxChBgUthpSP8wom9jfj79qovgG6qcSdiy6vkoREKPnbUYzJsCn4o4PtG3Iy+A==",
+      "name": "lucide-react"
+    }
+  ]
+}
