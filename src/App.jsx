@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { saveAs } from 'file-saver'
-import gsap from 'gsap'
 import {
   Archive,
   Check,
@@ -23,7 +22,7 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import { convertMusicFile, isSupportedMusicFile } from './lib/convert.js'
+import { isSupportedMusicFile } from './lib/supported-files.js'
 import { AdaptiveTaskQueue, getConversionTaskWeight } from './lib/concurrency.js'
 import { formatBytes, safeFilename } from './lib/format.js'
 import { buildTracksZip, calculateCrc32 } from './lib/zip.js'
@@ -575,24 +574,21 @@ function formatElapsedDuration(milliseconds, language) {
   return minutes ? `${minutes}分 ${seconds}秒` : `${seconds}秒`
 }
 
-function useGsapIntro(deps = []) {
+function useEntrance(deps = []) {
   const scope = useRef(null)
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const animations = [...(scope.current?.querySelectorAll('[data-enter]') || [])]
+      .map((item, index) => item.animate?.(
+        [
+          { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)' },
+        ],
+        { duration: 580, delay: 45 * index, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' },
+      ))
 
-    const context = gsap.context(() => {
-      gsap.from('[data-enter]', {
-        opacity: 0,
-        y: 18,
-        scale: 0.985,
-        duration: 0.58,
-        stagger: 0.045,
-        ease: 'back.out(1.35)',
-      })
-    }, scope)
-
-    return () => context.revert()
+    return () => animations.forEach((animation) => animation?.cancel())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 
@@ -655,7 +651,7 @@ function App() {
   const audioRef = useRef(null)
   const [conversionQueue] = useState(() => new AdaptiveTaskQueue())
   const shouldResolveGeoLanguageRef = useRef(shouldResolveGeoLanguage())
-  const rootRef = useGsapIntro([])
+  const rootRef = useEntrance([])
   const messages = I18N[language]
   const currentLanguageOption =
     LANGUAGE_OPTIONS.find((option) => option.id === language) || LANGUAGE_OPTIONS[0]
@@ -1002,6 +998,8 @@ function App() {
     }, 160)
 
     try {
+      const { convertMusicFile } = await import('./lib/convert.js')
+      if (cancelledTrackIdsRef.current.has(track.id)) return
       const result = await convertMusicFile(track.file, {
         onProgress: (progress) => {
           setTracks((current) => current.map((item) =>

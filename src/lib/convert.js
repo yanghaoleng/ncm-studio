@@ -2,11 +2,7 @@ import { convertKugouFile } from './kugou.js'
 import { convertNcmToMp3 } from './ncm-mp3.js'
 import { convertFlacToMp3 } from './audio.js'
 
-export const SUPPORTED_FILE_PATTERN = /\.(?:ncm|flac|kgm|kgma|vpr)$/i
-
-export function isSupportedMusicFile(name) {
-  return SUPPORTED_FILE_PATTERN.test(name || '')
-}
+export { SUPPORTED_FILE_PATTERN, isSupportedMusicFile } from './supported-files.js'
 
 export async function convertMusicFile(file, options = {}) {
   if (/\.ncm$/i.test(file.name)) return convertNcmToMp3(file, options)
