@@ -1185,7 +1185,7 @@ function App() {
     : formatElapsedDuration(conversionElapsedMs, language)
 
   return (
-    <div className={`app ${tracks.length ? 'hasTracks' : ''}`} ref={rootRef}>
+    <div className={`app ${tracks.length ? 'hasTracks' : ''}`} lang={currentLanguageOption.htmlLang} ref={rootRef}>
       <header className="topbar" data-enter>
           <div className="brand">
             <button

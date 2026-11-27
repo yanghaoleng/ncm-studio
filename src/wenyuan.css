@@ -1,0 +1,117 @@
+/* Generated from checked-in public I18N only. Filenames, metadata and selected tracks never inherit this face. */
+
+@font-face {
+  font-family: "NCM WenYuan zh-CN core";
+  src: url("/fonts/wenyuan/zh-core.c60f79ca26e8.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E0B, U+4E0D, U+4E2D, U+4E3B, U+4E50, U+4EF6, U+4F1A, U+4F53, U+4F5C, U+4F60, U+4F7F, U+5165, U+518D, U+5217, U+52A0, U+52A8, U+5305, U+5355, U+53EA, U+542C, U+5728, U+5730, U+5904, U+5927, U+5B89, U+5BFC, U+5DF2, U+5E2E, U+6216, U+624B, U+6253, U+62D6, U+62E9, U+6301, U+652F, U+6551, U+6587, U+65B0, U+65B9, U+65E0, U+660E, U+661F, U+6682, U+672C, U+677E, U+6B21, U+6B4C, U+6C34, U+6CD5, U+6DFB, U+7406, U+7528, U+7AD9, U+7B80, U+7EE7, U+7EED, U+7F51, U+8005, U+81EA, U+88C5, U+89C8, U+8BA9, U+8BD5, U+8BF4, U+8D4F, U+8F6C, U+8F7D, U+9009, U+961F, U+97F3, U+9875, U+9884;
+}
+
+.app[lang="zh-CN"] :is(
+  .brandTitleMotion,
+  .languageButton > span,
+  .languageMenu > button > span,
+  .queueHeader h2,
+  .heroDropzone > strong,
+  .heroDropzone > span,
+  .dropOverlay > strong,
+  .dropOverlay > span,
+  .appleMusicImportTrigger,
+  .qqMusicUnsupported,
+  .queueControls button,
+  .cliSectionTitle,
+  .donateSectionTitle,
+  .siteFooter .usageGuideTrigger > span,
+  .siteFooter .footerTextLink > span,
+  .previewMeta > span:first-child
+) {
+  font-family: Inter, "NCM WenYuan zh-CN core", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+@font-face {
+  font-family: "NCM WenYuan zh-CN details";
+  src: url("/fonts/wenyuan/zh-details.56a106aafa24.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E00, U+4E0A, U+4E0B, U+4E0D, U+4E0E, U+4E2A, U+4E2D, U+4E3A, U+4E50, U+4E5F, U+4E70, U+4E86, U+4E8B, U+4E91, U+4EA4, U+4EAE, U+4EBA, U+4ECA, U+4ED8, U+4EE4, U+4EE5, U+4EF6, U+4EFD, U+4F1A, U+4F20, U+4F34, U+4F4F, U+4F5C, U+4F60, U+4F7F, U+4F9B, U+4FE1, U+503C, U+50A8, U+5148, U+5149, U+514D, U+5165, U+5168, U+5177, U+5185, U+518D, U+51CF, U+5206, U+5217, U+5229, U+5230, U+5236, U+5237, U+524D, U+529B, U+52A0, U+52A1, U+52A8, U+52A9, U+52AA, U+5305, U+5316, U+5355, U+5361, U+53D1, U+53D8, U+53E3, U+53EA, U+53EF, U+53F3, U+53F7, U+5408, U+540E, U+542C, U+544A, U+545B, U+5468, U+5473, U+547D, U+548C, U+54C1, U+559C, U+5668, U+56DE, U+5728, U+5730, U+573A, U+5747, U+5904, U+5907, U+590D, U+591A, U+5927, U+5929, U+5931, U+5934, U+597D, U+5982, U+5B58, U+5B83, U+5B89, U+5B8C, U+5B98, U+5B9A, U+5B9D, U+5B9E, U+5BA2, U+5BFC, U+5C06, U+5C0F, U+5C11, U+5CB8, U+5DE5, U+5DF1, U+5DF2, U+5E2E, U+5EA6, U+5EFA, U+5F00, U+5F53, U+5F55, U+5F88, U+5F97, U+5FAE, U+5FC3, U+5FEB, U+60A8, U+60CA, U+610F, U+611F, U+613F, U+6210, U+6211, U+6216, U+6237, U+624B, U+6253, U+6279, U+627E, U+628A, U+62A5, U+62D6, U+6301, U+6307, U+6362, U+6388, U+6389, U+638C, U+63A5, U+63A8, U+63D0, U+6478, U+64AD, U+652F, U+653E, U+6551, U+6570, U+6574, U+6587, U+65B0, U+65B9, U+65F6, U+6613, U+661F, U+666F, U+6682, U+66F2, U+66F4, U+6700, U+6709, U+670D, U+672B, U+672C, U+673A, U+6743, U+679C, U+68D2, U+68DA, U+6B21, U+6B22, U+6B4C, U+6B65, U+6BCF, U+6C14, U+6C34, U+6C38, U+6C42, U+6CA1, U+6CD5, U+6CF3, U+6D4F, U+6E38, U+6E90, U+6F02, U+6F0F, U+7075, U+7206, U+7231, U+72D7, U+73B0, U+73ED, U+7406, U+7528, U+7535, U+7626, U+7684, U+76EE, U+76F4, U+7701, U+773C, U+786E, U+795D, U+79BB, U+7AEF, U+7B49, U+7C98, U+7E41, U+7EBF, U+7ED9, U+7EED, U+7F51, U+8033, U+80FD, U+8111, U+81EA, U+822A, U+82E5, U+8350, U+83B7, U+8868, U+88C5, U+8981, U+89C8, U+89D2, U+8BA4, U+8BA9, U+8BAE, U+8BBE, U+8BBF, U+8BC9, U+8BD5, U+8BF7, U+8BF8, U+8C22, U+8C46, U+8D25, U+8D2D, U+8D34, U+8D39, U+8D44, U+8D4F, U+8DD1, U+8EAB, U+8F66, U+8F6C, U+8F7D, U+8F83, U+8FD0, U+8FD9, U+8FDB, U+8FDC, U+8FDE, U+9002, U+90E8, U+90FD, U+9177, U+91CC, U+91CD, U+91CF, U+94B1, U+94FE, U+95EE, U+95F4, U+9650, U+966A, U+968F, U+9700, U+97F3, U+9876, U+987A, U+9891, U+98CE, U+9996, U+9AA8, U+9C7C, U+9F13;
+}
+
+.app[lang="zh-CN"] :is(
+  .appleMusicImportHint:hover .appleMusicImportTooltip,
+  .appleMusicImportTrigger:focus + .appleMusicImportTooltip,
+  .cliSectionBody > p,
+  .cliUsageDetail > p,
+  .cliUsageDetail > strong,
+  .cliPackagePrefix,
+  .donateCopyLine,
+  .wechatCopyButton > span,
+  .donateTabs button > span,
+  .usageGuideDialogHeader h2,
+  .usageGuideContent h3,
+  .usageGuideContent h4,
+  .usageGuideContent p,
+  .seoLanguageLinks > button
+) {
+  font-family: Inter, "NCM WenYuan zh-CN details", "NCM WenYuan zh-CN core", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+@font-face {
+  font-family: "NCM WenYuan zh-Hant core";
+  src: url("/fonts/wenyuan/zh-Hant-core.1cddb244ae81.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E0B, U+4E0D, U+4E2D, U+4F47, U+4F5C, U+4F60, U+4F7F, U+5165, U+518D, U+5217, U+52A0, U+52D5, U+5305, U+532F, U+5373, U+53EA, U+53EF, U+55AE, U+5728, U+589E, U+5927, U+5B89, U+5DF2, U+5E6B, U+6216, U+6253, U+62D6, U+6301, U+63F4, U+64C7, U+652F, U+653E, U+6551, U+6587, U+65B0, U+65B9, U+660E, U+661F, U+66AB, U+6703, U+672C, U+6848, U+6A02, U+6A5F, U+6A94, U+6B21, U+6B4C, U+6B63, U+6C34, U+6CD5, U+7121, U+7406, U+7528, U+7AD9, U+7DB2, U+7E41, U+7E7C, U+7E8C, U+8005, U+807D, U+81EA, U+8655, U+88DD, U+89BD, U+8A66, U+8AAA, U+8B93, U+8F09, U+8F49, U+9078, U+958B, U+97F3, U+9801, U+9810, U+9996, U+9AD4;
+}
+
+.app[lang="zh-Hant"] :is(
+  .brandTitleMotion,
+  .languageButton > span,
+  .languageMenu > button > span,
+  .queueHeader h2,
+  .heroDropzone > strong,
+  .heroDropzone > span,
+  .dropOverlay > strong,
+  .dropOverlay > span,
+  .appleMusicImportTrigger,
+  .qqMusicUnsupported,
+  .queueControls button,
+  .cliSectionTitle,
+  .donateSectionTitle,
+  .siteFooter .usageGuideTrigger > span,
+  .siteFooter .footerTextLink > span,
+  .previewMeta > span:first-child
+) {
+  font-family: Inter, "NCM WenYuan zh-Hant core", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+@font-face {
+  font-family: "NCM WenYuan zh-Hant details";
+  src: url("/fonts/wenyuan/zh-Hant-details.ccde66ceef98.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+4E00, U+4E0A, U+4E0B, U+4E0D, U+4E2D, U+4E5F, U+4E8B, U+4EA4, U+4EAE, U+4EBA, U+4ECA, U+4ECD, U+4ED8, U+4EE4, U+4EE5, U+4EFD, U+4F34, U+4F3A, U+4F4F, U+4F5C, U+4F60, U+4F7F, U+4F9B, U+4FE1, U+500B, U+503C, U+50B3, U+5132, U+5148, U+5149, U+514D, U+5165, U+5167, U+5168, U+5177, U+518D, U+51FA, U+5206, U+5217, U+5229, U+5230, U+524D, U+529B, U+52A0, U+52A9, U+52AA, U+52D5, U+5305, U+5316, U+532F, U+5361, U+53D6, U+53E3, U+53EA, U+53EF, U+53F3, U+5408, U+5411, U+544A, U+5473, U+548C, U+54C1, U+559C, U+55AE, U+55C6, U+5668, U+56DE, U+5728, U+5831, U+5883, U+591A, U+5927, U+5929, U+5931, U+593E, U+597D, U+5982, U+5B58, U+5B83, U+5B89, U+5B8C, U+5B98, U+5B9A, U+5BA2, U+5BE6, U+5BF6, U+5C07, U+5C0E, U+5C0F, U+5C11, U+5CB8, U+5DE5, U+5DF1, U+5DF2, U+5E38, U+5E6B, U+5EA6, U+5EFA, U+5F88, U+5F8C, U+5F97, U+5FAE, U+5FC3, U+5FEB, U+60C5, U+610F, U+611B, U+611F, U+61B6, U+6210, U+6211, U+6216, U+6236, U+624B, U+6253, U+6279, U+627E, U+628A, U+62D6, U+6301, U+6307, U+6388, U+6389, U+638C, U+63A5, U+63D0, U+63DB, U+63F4, U+6478, U+64AD, U+652F, U+653E, U+6551, U+6557, U+6574, U+6578, U+6599, U+65B0, U+65B9, U+6613, U+661F, U+6642, U+66AB, U+66F2, U+66F4, U+6700, U+6703, U+6709, U+670D, U+672B, U+672C, U+679C, U+6848, U+684C, U+68D2, U+68DA, U+6A02, U+6A5F, U+6A94, U+6B0A, U+6B21, U+6B4C, U+6B61, U+6B65, U+6BCF, U+6C23, U+6C34, U+6C38, U+6C42, U+6C92, U+6CD5, U+6CF3, U+6E1B, U+6E38, U+6E90, U+6F02, U+6F0F, U+700F, U+70BA, U+7136, U+7206, U+72D7, U+7372, U+73ED, U+73FE, U+7406, U+7528, U+7626, U+767C, U+7684, U+76EE, U+76F4, U+7701, U+773C, U+78BA, U+795D, U+7A7A, U+7AEF, U+7B49, U+7D50, U+7D66, U+7D93, U+7DB2, U+7DDA, U+7E8C, U+7F6E, U+8033, U+807D, U+81EA, U+8207, U+822A, U+82E5, U+8655, U+865F, U+8868, U+88DD, U+88FD, U+8907, U+8981, U+89BD, U+89D2, U+8A0A, U+8A18, U+8A34, U+8A66, U+8A8D, U+8ACB, U+8AF8, U+8B1D, U+8B70, U+8B8A, U+8B93, U+8C46, U+8CB7, U+8CBB, U+8CBC, U+8CC7, U+8CDE, U+8CFC, U+8DD1, U+8EAB, U+8ECA, U+8F03, U+8F09, U+8F49, U+9019, U+9023, U+9031, U+9032, U+904B, U+9060, U+9069, U+90E8, U+90FD, U+9177, U+91CD, U+91CF, U+9322, U+958B, U+9593, U+9650, U+966A, U+96A8, U+96E2, U+96F2, U+96FB, U+9700, U+9748, U+9762, U+97F3, U+9802, U+9806, U+982D, U+9858, U+98A8, U+9996, U+9A5A, U+9AA8, U+9AD4, U+9AEE, U+9B5A, U+9F13;
+}
+
+.app[lang="zh-Hant"] :is(
+  .appleMusicImportHint:hover .appleMusicImportTooltip,
+  .appleMusicImportTrigger:focus + .appleMusicImportTooltip,
+  .cliSectionBody > p,
+  .cliUsageDetail > p,
+  .cliUsageDetail > strong,
+  .cliPackagePrefix,
+  .donateCopyLine,
+  .wechatCopyButton > span,
+  .donateTabs button > span,
+  .usageGuideDialogHeader h2,
+  .usageGuideContent h3,
+  .usageGuideContent h4,
+  .usageGuideContent p,
+  .seoLanguageLinks > button
+) {
+  font-family: Inter, "NCM WenYuan zh-Hant details", "NCM WenYuan zh-Hant core", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
